@@ -1,18 +1,22 @@
-import React, { Suspense } from "react";
-import { BrandDetailView } from "@/components/shopping-brand/BrandDetailView";
+'use client';
 
-export default async function ShoppingBrandDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const id = (await params).id;
+import React from "react";
+import { BrandDetailView } from "@/components/shopping-brand/BrandDetailView";
+import { useParams } from "next/navigation";
+
+export function generateStaticParams() {
+  return [];
+}
+
+export const dynamicParams = true;
+
+export default function ShoppingBrandDetail() {
+  const params = useParams();
+  const id = params.id as string;
 
   return (
     <div className="min-h-screen bg-white">
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center">브랜드 정보를 불러오는 중...</div>}>
-        <BrandDetailView brandId={id} />
-      </Suspense>
+      <BrandDetailView brandId={id} />
     </div>
   );
 } 

@@ -1,5 +1,8 @@
-import React, { Suspense } from 'react';
+'use client';
+
+import React from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { ROUTE } from '@/configs/constant/route';
 import { IoChevronForward } from 'react-icons/io5';
 
@@ -8,12 +11,15 @@ import { ProductOptionView } from '@/components/shopping-product-detail/ProductO
 import { MobileFixedBar } from '@/components/shopping-product-detail/MobileFixedBar';
 import { RelatedProducts } from '@/components/shopping-product-detail/RelatedProducts';
 
-export default async function ShoppingProductDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const id = (await params).id;
+export function generateStaticParams() {
+  return [];
+}
+
+export const dynamicParams = true;
+
+export default function ShoppingProductDetail() {
+  const params = useParams();
+  const id = params.id as string;
 
   return (
     <div className="min-h-screen bg-white">
