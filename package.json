@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npx next dev -p 3001",
-    "build": "npx next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=2048' npx next build",
     "start": "npx next start -p 3001",
     "lint": "npx next lint"
   },
