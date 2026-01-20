@@ -33,6 +33,7 @@ export const useGetProductList = (page: number) => {
   const [bodyType] = useQueryString<string>("bodyType", "");
   const [search] = useQueryString<string>("search", "");
   const [clothingCategory] = useQueryString<string>("clothingCategory", "");
+  const [sort] = useQueryString<string>("sort", "latest");
 
   return useQuery({
     queryKey: [
@@ -43,22 +44,47 @@ export const useGetProductList = (page: number) => {
       bodyType,
       search,
       clothingCategory,
+      sort,
     ],
-    queryFn: () =>
-      productApi.getProductList({
+    queryFn: async () => {
+      console.log('[useGetProductList] API 호출 시작:', {
         page,
-        colorSeasons:
-          colorSeasons.length > 0
-            ? (colorSeasons as ColorSeason[])
-            : undefined,
-        styleCategories:
-          styleCategories.length > 0
-            ? (styleCategories as StyleCategory[])
-            : undefined,
-        bodyType: bodyType ? (bodyType as BodyType) : undefined,
-        search: search ? search : undefined,
-        clothingCategory: clothingCategory ? clothingCategory : undefined,
-      }),
+        colorSeasons,
+        styleCategories,
+        bodyType,
+        search,
+        clothingCategory,
+        sort,
+      });
+      try {
+        const result = await productApi.getProductList({
+          page,
+          sort: sort || "latest",
+          colorSeasons:
+            colorSeasons.length > 0
+              ? (colorSeasons as ColorSeason[])
+              : undefined,
+          styleCategories:
+            styleCategories.length > 0
+              ? (styleCategories as StyleCategory[])
+              : undefined,
+          bodyType: bodyType ? (bodyType as BodyType) : undefined,
+          search: search ? search : undefined,
+          clothingCategory: clothingCategory ? clothingCategory : undefined,
+        });
+        console.log('[useGetProductList] API 호출 성공:', {
+          productsCount: result.products?.length || 0,
+          lastPage: result.lastPage,
+        });
+        return result;
+      } catch (error) {
+        console.error('[useGetProductList] API 호출 실패:', error);
+        throw error;
+      }
+    },
+    retry: 3,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false,
   });
 };
 

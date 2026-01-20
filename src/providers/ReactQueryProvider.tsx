@@ -13,7 +13,9 @@ function makeQueryClient() {
         // With SSR, we usually want to set some default staleTime
         // above 0 to avoid refetching immediately on the client
         staleTime: 60 * 1000,
-        retry: 0,
+        retry: 3, // 네트워크 에러 시 재시도
+        retryDelay: 1000, // 1초 후 재시도
+        refetchOnWindowFocus: false, // 창 포커스 시 자동 재요청 방지
       },
     },
   });

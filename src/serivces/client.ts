@@ -3,15 +3,51 @@ import axios from "axios";
 import { ENV } from "@/configs/app/env";
 import { STORAGE } from "@/configs/constant/storage";
 
-// 브라우저에서 실행 중일 때는 현재 호스트의 백엔드 포트 사용
+// 브라우저에서 실행 중일 때는 환경 변수 또는 기본값 사용
 const getApiUrl = () => {
+  // 기본 백엔드 URL (프로덕션)
+  const defaultApiUrl = "http://13.125.130.10:3000";
+  
   if (typeof window !== 'undefined') {
-    // 브라우저 환경: 현재 호스트의 백엔드 포트 사용
-    const host = window.location.hostname;
-    return `http://${host}:3000`;
+    const hostname = window.location.hostname;
+    
+    // 로컬 개발 환경
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `http://${hostname}:3000`;
+    }
+    
+    // 프로덕션 환경: 환경 변수 확인
+    // 정적 빌드에서는 process.env가 빌드 시점에 주입됨
+    // ENV.API_URL에 기본값이 설정되어 있으므로 항상 값이 있음
+    const protocol = window.location.protocol;
+    let envApiUrl = ENV.API_URL || defaultApiUrl;
+    
+    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 자동으로 올바른 URL로 변경
+    if (envApiUrl.includes('api.itsmycolorshop.com')) {
+      console.warn('[API URL] api.itsmycolorshop.com 감지 - SSL 인증서 만료로 인해 올바른 URL로 변경:', defaultApiUrl);
+      envApiUrl = defaultApiUrl;
+    }
+    
+    // HTTPS 사이트에서 HTTP API 호출 시 Mixed Content 경고
+    if (protocol === 'https:' && envApiUrl.startsWith('http:')) {
+      console.warn('[API URL] HTTPS 사이트에서 HTTP API 호출 - Mixed Content 문제 가능성:', envApiUrl);
+    }
+    
+    // 디버깅 로그 (프로덕션에서도 표시)
+    console.log('[API URL]', {
+      url: envApiUrl,
+      fromENV: ENV.API_URL,
+      hostname,
+      protocol,
+      isVercel: hostname.includes('vercel.app'),
+    });
+    
+    return envApiUrl;
   }
-  // 서버 사이드: 환경 변수 또는 기본값 사용
-  return (ENV.API_URL && ENV.API_URL.trim() !== "") ? ENV.API_URL : "http://localhost:3000";
+  
+  // 서버 사이드: 환경 변수 또는 기본값
+  // ENV.API_URL에 기본값이 설정되어 있으므로 항상 값이 있음
+  return ENV.API_URL || defaultApiUrl;
 };
 
 export const axiosInstance = axios.create({
@@ -37,16 +73,53 @@ axiosInstance.interceptors.request.use(
       delete config.headers['Content-Type'];
     }
     
+    // 디버깅: API 요청 로그
+    console.log('[API Request]', config.method?.toUpperCase(), config.url, {
+      baseURL: config.baseURL,
+      params: config.params,
+    });
+    
     return config;
   },
   (error) => {
+    console.error('[API Request Error]', error);
     return Promise.reject(error);
   }
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 성공 응답 로그
+    console.log('[API Response]', response.status, response.config?.url, {
+      dataLength: response.data ? (Array.isArray(response.data) ? response.data.length : Object.keys(response.data).length) : 0,
+    });
+    return response;
+  },
   (error) => {
+    // 에러 로깅 (프로덕션에서도 확인 가능)
+    if (error.response) {
+      console.error('[API Error]', {
+        status: error.response.status,
+        url: error.response.config?.url,
+        baseURL: error.response.config?.baseURL,
+        data: error.response.data,
+        headers: error.response.headers,
+      });
+    } else if (error.request) {
+      console.error('[API Network Error]', {
+        url: error.request.url || error.config?.url,
+        baseURL: error.config?.baseURL,
+        message: error.message,
+        code: error.code,
+        request: error.request,
+      });
+    } else {
+      console.error('[API Error]', {
+        message: error.message,
+        config: error.config,
+      });
+    }
+    
     if (error.response?.status === 401) {
       // 로그인 페이지로 리다이렉트 등의 처리
     }

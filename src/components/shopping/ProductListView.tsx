@@ -10,7 +10,7 @@ import { IoGrid, IoList } from "react-icons/io5";
 
 export const ProductListView = () => {
   const [page, setPage] = useState(1);
-  const { data: productsData, isLoading } = useGetProductList(page);
+  const { data: productsData, isLoading, error } = useGetProductList(page);
 
   const [prevProducts, setPrevProducts] = useState<ProductListItem[]>([]);
   const products = productsData?.products;
@@ -19,9 +19,32 @@ export const ProductListView = () => {
   const [colorSeasons] = useQueryString<string[]>("colorSeasons", []);
   const [styleCategories] = useQueryString<string[]>("styleCategories", []);
   const [bodyType] = useQueryString<string>("bodyType", "");
+  const [sortBy, setSortBy] = useQueryString<string>("sort", "latest");
 
-  const [sortBy, setSortBy] = useState("latest");
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
+
+  // 에러 로깅
+  useEffect(() => {
+    if (error) {
+      console.error('[ProductListView] API 에러:', error);
+      console.error('[ProductListView] 에러 상세:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
+  }, [error]);
+
+  // 데이터 로깅
+  useEffect(() => {
+    console.log('[ProductListView] 상태:', {
+      productsData,
+      products: products?.length || 0,
+      isLoading,
+      error: error ? (error instanceof Error ? error.message : String(error)) : null,
+      page,
+      sortBy,
+    });
+  }, [productsData, products, isLoading, error, page, sortBy]);
 
   // 필터 변경 시 페이지 초기화
   useEffect(() => {
@@ -69,8 +92,14 @@ export const ProductListView = () => {
 
   const displayProducts = prevProducts.length > 0 ? prevProducts : products || [];
 
-  // Sort products
+  // 서버에서 정렬된 데이터를 받으므로 클라이언트 사이드 정렬은 필요 없음
+  // 하지만 sortBy가 "price-low", "price-high", "name"인 경우는 클라이언트 사이드 정렬 필요
   const sortedProducts = [...displayProducts].sort((a, b) => {
+    // 서버에서 정렬된 경우 (latest, sales 등)는 그대로 사용
+    if (sortBy === "latest" || sortBy === "sales") {
+      return 0; // 서버에서 이미 정렬됨
+    }
+    // 클라이언트 사이드 정렬이 필요한 경우
     switch (sortBy) {
       case "price-low":
         return a.price - b.price;
@@ -78,8 +107,8 @@ export const ProductListView = () => {
         return b.price - a.price;
       case "name":
         return a.name.localeCompare(b.name);
-      default: // latest
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      default:
+        return 0;
     }
   });
 
@@ -97,7 +126,11 @@ export const ProductListView = () => {
           {/* Sort Dropdown */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1);
+              setPrevProducts([]);
+            }}
             className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
           >
             <option value="latest">최신순</option>
@@ -128,8 +161,22 @@ export const ProductListView = () => {
         </div>
       </div>
 
+      {/* 에러 표시 */}
+      {error && (
+        <div className="text-center py-20">
+          <p className="text-red-500 text-lg mb-2">상품을 불러오는 중 오류가 발생했습니다</p>
+          <p className="text-gray-400 text-sm mb-4">페이지를 새로고침해주세요</p>
+          <details className="text-left max-w-2xl mx-auto bg-gray-50 p-4 rounded">
+            <summary className="cursor-pointer text-sm text-gray-600">에러 상세 정보</summary>
+            <pre className="mt-2 text-xs overflow-auto">
+              {JSON.stringify(error, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
+
       {/* Products Grid/List */}
-      {isLoading && page === 1 ? (
+      {!error && isLoading && page === 1 ? (
         <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
           {[...Array(9)].map((_, i) => (
             <div key={i} className="space-y-2">
@@ -142,7 +189,7 @@ export const ProductListView = () => {
             </div>
           ))}
         </div>
-      ) : sortedProducts.length > 0 ? (
+      ) : !error && !isLoading && sortedProducts && sortedProducts.length > 0 ? (
         <div
           className={
             viewType === "grid"
@@ -158,12 +205,29 @@ export const ProductListView = () => {
             )
           ))}
         </div>
-      ) : (
+      ) : !error && !isLoading ? (
         <div className="text-center py-20">
-          <p className="text-gray-500 text-lg mb-2">조건에 맞는 상품이 없습니다</p>
-          <p className="text-gray-400 text-sm">다른 필터를 선택해보세요</p>
+          <p className="text-gray-500 text-lg mb-2">
+            {sortedProducts && sortedProducts.length === 0 
+              ? "조건에 맞는 상품이 없습니다" 
+              : "상품 데이터를 불러올 수 없습니다"}
+          </p>
+          <p className="text-gray-400 text-sm mb-4">다른 필터를 선택해보세요</p>
+          <details className="text-left max-w-2xl mx-auto bg-gray-50 p-4 rounded">
+            <summary className="cursor-pointer text-sm text-gray-600">디버그 정보</summary>
+            <pre className="mt-2 text-xs overflow-auto">
+              {JSON.stringify({
+                productsData,
+                products: products?.length || 0,
+                sortedProducts: sortedProducts?.length || 0,
+                displayProducts: displayProducts?.length || 0,
+                isLoading,
+                error: error ? (error instanceof Error ? error.message : String(error)) : null,
+              }, null, 2)}
+            </pre>
+          </details>
         </div>
-      )}
+      ) : null}
 
       {/* Loading indicator for infinite scroll */}
       {isLoading && page > 1 && (

@@ -2,8 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // 동적 라우트 때문에 정적 빌드 불가 - EC2에서 서버 모드로 실행
-  // output: 'export',
+  // S3 정적 빌드 활성화 (Vercel에서는 자동으로 비활성화됨)
+  // Vercel은 서버 사이드 렌더링을 지원하므로 output: 'export'를 사용하지 않음
+  ...(process.env.VERCEL ? {} : { output: 'export' }),
+  
+  // trailingSlash를 false로 설정하여 각 경로가 개별 HTML 파일로 생성되도록 함
+  // true로 설정하면 /shopping/ 폴더를 찾게 되어 S3에서 문제 발생
+  trailingSlash: false,
   
   // ESLint 비활성화 (빌드 오류 방지)
   eslint: {
@@ -45,6 +50,20 @@ const nextConfig: NextConfig = {
   // 환경 변수 설정 (빌드 시점에 주입)
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://13.125.130.10:3000',
+  },
+  
+  // Vercel rewrites (서버 사이드 프록시)
+  async rewrites() {
+    // Vercel 환경에서만 rewrites 사용
+    if (process.env.VERCEL) {
+      return [
+        {
+          source: '/api/proxy/:path*',
+          destination: 'http://13.125.130.10:3000/:path*',
+        },
+      ];
+    }
+    return [];
   },
 };
 
