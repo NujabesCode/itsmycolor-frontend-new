@@ -44,8 +44,12 @@ const getApiUrl = () => {
   return defaultApiUrl;
 };
 
+// axios instance를 동적으로 생성하여 런타임에 올바른 URL 사용
 export const axiosInstance = axios.create({
-  baseURL: getApiUrl(),
+  // baseURL은 interceptor에서 동적으로 설정
+  baseURL: typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? `http://${window.location.hostname}:3000`
+    : "http://13.125.130.10:3000",
   headers: {
     "Content-Type": "application/json",
   },
@@ -54,11 +58,15 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 강제로 올바른 URL로 변경
-    const correctApiUrl = "http://13.125.130.10:3000";
+    const correctApiUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? `http://${window.location.hostname}:3000`
+      : "http://13.125.130.10:3000";
     
-    // baseURL을 항상 올바른 URL로 강제 설정
-    if (!config.baseURL || config.baseURL.includes('api.itsmycolorshop.com')) {
-      console.warn('[API Request] baseURL을 올바른 URL로 강제 변경:', config.baseURL, '->', correctApiUrl);
+    // baseURL을 항상 올바른 URL로 강제 설정 (빌드 시점에 잘못된 값이 포함되어 있어도 런타임에 수정)
+    if (!config.baseURL || config.baseURL.includes('api.itsmycolorshop.com') || config.baseURL !== correctApiUrl) {
+      if (config.baseURL && config.baseURL.includes('api.itsmycolorshop.com')) {
+        console.warn('[API Request] api.itsmycolorshop.com 감지 - baseURL을 올바른 URL로 강제 변경:', config.baseURL, '->', correctApiUrl);
+      }
       config.baseURL = correctApiUrl;
     }
     
@@ -90,7 +98,7 @@ axiosInstance.interceptors.request.use(
       }
     }
     
-    // 최종 확인: baseURL이 올바른지 체크
+    // 최종 확인: baseURL이 올바른지 체크 (로컬 개발 환경 제외)
     if (config.baseURL && config.baseURL !== correctApiUrl && !config.baseURL.includes('localhost')) {
       console.warn('[API Request] baseURL이 예상과 다릅니다. 올바른 URL로 변경:', config.baseURL, '->', correctApiUrl);
       config.baseURL = correctApiUrl;
