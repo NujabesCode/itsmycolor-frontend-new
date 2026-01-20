@@ -5,7 +5,7 @@ import { STORAGE } from "@/configs/constant/storage";
 
 // 브라우저에서 실행 중일 때는 환경 변수 또는 기본값 사용
 const getApiUrl = () => {
-  // 기본 백엔드 URL (프로덕션)
+  // 기본 백엔드 URL (프로덕션) - 항상 이 값을 사용
   const defaultApiUrl = "http://13.125.130.10:3000";
   
   if (typeof window !== 'undefined') {
@@ -16,15 +16,20 @@ const getApiUrl = () => {
       return `http://${hostname}:3000`;
     }
     
+    // Vercel 배포 환경에서는 항상 올바른 URL 사용
+    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가
+    if (hostname.includes('vercel.app') || hostname.includes('itsmycolor')) {
+      console.warn('[API URL] Vercel 배포 환경 감지 - 올바른 백엔드 URL 사용:', defaultApiUrl);
+      return defaultApiUrl;
+    }
+    
     // 프로덕션 환경: 환경 변수 확인
-    // 정적 빌드에서는 process.env가 빌드 시점에 주입됨
-    // ENV.API_URL에 기본값이 설정되어 있으므로 항상 값이 있음
     const protocol = window.location.protocol;
     let envApiUrl = ENV.API_URL || defaultApiUrl;
     
-    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 자동으로 올바른 URL로 변경
+    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 강제로 올바른 URL로 변경
     if (envApiUrl.includes('api.itsmycolorshop.com')) {
-      console.warn('[API URL] api.itsmycolorshop.com 감지 - SSL 인증서 만료로 인해 올바른 URL로 변경:', defaultApiUrl);
+      console.warn('[API URL] api.itsmycolorshop.com 감지 - SSL 인증서 만료로 인해 올바른 URL로 강제 변경:', defaultApiUrl);
       envApiUrl = defaultApiUrl;
     }
     
@@ -45,9 +50,8 @@ const getApiUrl = () => {
     return envApiUrl;
   }
   
-  // 서버 사이드: 환경 변수 또는 기본값
-  // ENV.API_URL에 기본값이 설정되어 있으므로 항상 값이 있음
-  return ENV.API_URL || defaultApiUrl;
+  // 서버 사이드: 항상 올바른 URL 사용
+  return defaultApiUrl;
 };
 
 export const axiosInstance = axios.create({
