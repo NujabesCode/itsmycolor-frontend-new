@@ -49,7 +49,16 @@ const nextConfig: NextConfig = {
   
   // 환경 변수 설정 (빌드 시점에 주입)
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://13.125.130.10:3000',
+    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가
+    // Vercel 환경 변수가 잘못 설정되어 있어도 빌드 시점에 올바른 URL로 강제 설정
+    NEXT_PUBLIC_API_URL: (() => {
+      const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.125.130.10:3000';
+      if (envUrl.includes('api.itsmycolorshop.com')) {
+        console.warn('[next.config.ts] api.itsmycolorshop.com 감지 - 올바른 URL로 강제 변경');
+        return 'http://13.125.130.10:3000';
+      }
+      return envUrl;
+    })(),
   },
   
   // Vercel rewrites (서버 사이드 프록시)
