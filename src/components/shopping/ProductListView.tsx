@@ -37,14 +37,30 @@ export const ProductListView = () => {
   // 데이터 로깅
   useEffect(() => {
     console.log('[ProductListView] 상태:', {
-      productsData,
+      productsData: productsData ? {
+        productsCount: productsData.products?.length || 0,
+        lastPage: productsData.lastPage,
+        hasData: !!productsData,
+      } : null,
       products: products?.length || 0,
+      displayProducts: displayProducts?.length || 0,
+      sortedProducts: sortedProducts?.length || 0,
       isLoading,
       error: error ? (error instanceof Error ? error.message : String(error)) : null,
       page,
       sortBy,
     });
-  }, [productsData, products, isLoading, error, page, sortBy]);
+    
+    // 상품이 없을 때 경고
+    if (!isLoading && !error && (!products || products.length === 0)) {
+      console.warn('[ProductListView] 상품 데이터가 없습니다:', {
+        productsData,
+        products,
+        displayProducts,
+        sortedProducts,
+      });
+    }
+  }, [productsData, products, isLoading, error, page, sortBy, displayProducts, sortedProducts]);
 
   // 필터 변경 시 페이지 초기화
   useEffect(() => {
