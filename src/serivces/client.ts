@@ -65,15 +65,39 @@ axiosInstance.interceptors.request.use(
   (config) => {
     // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 강제로 올바른 URL로 변경
     const correctApiUrl = "http://13.125.130.10:3000";
+    
+    // baseURL이 api.itsmycolorshop.com을 포함하는 경우 강제 변경
     if (config.baseURL && config.baseURL.includes('api.itsmycolorshop.com')) {
       console.warn('[API Request] api.itsmycolorshop.com 감지 - baseURL을 올바른 URL로 강제 변경');
       config.baseURL = correctApiUrl;
     }
     
-    // 전체 URL이 api.itsmycolorshop.com을 포함하는 경우도 체크
-    if (config.url && config.url.includes('api.itsmycolorshop.com')) {
-      console.warn('[API Request] URL에 api.itsmycolorshop.com 포함 - 올바른 URL로 변경');
-      config.url = config.url.replace(/https?:\/\/api\.itsmycolorshop\.com/, correctApiUrl);
+    // 전체 URL 생성 (baseURL + url)
+    let fullUrl = '';
+    if (config.url) {
+      if (config.url.startsWith('http://') || config.url.startsWith('https://')) {
+        fullUrl = config.url;
+      } else {
+        fullUrl = (config.baseURL || '') + config.url;
+      }
+    } else {
+      fullUrl = config.baseURL || '';
+    }
+    
+    // 전체 URL에서 api.itsmycolorshop.com을 올바른 URL로 변경
+    if (fullUrl.includes('api.itsmycolorshop.com')) {
+      console.warn('[API Request] 전체 URL에 api.itsmycolorshop.com 포함 - 올바른 URL로 강제 변경');
+      fullUrl = fullUrl.replace(/https?:\/\/api\.itsmycolorshop\.com/g, correctApiUrl);
+      
+      // 변경된 URL을 baseURL과 url로 분리
+      if (config.url && (config.url.startsWith('http://') || config.url.startsWith('https://'))) {
+        config.url = fullUrl;
+        config.baseURL = '';
+      } else {
+        const urlPath = config.url || '';
+        config.baseURL = correctApiUrl;
+        config.url = urlPath;
+      }
     }
     
     const localToken = localStorage.getItem(STORAGE.TOKEN);
@@ -91,9 +115,10 @@ axiosInstance.interceptors.request.use(
     }
     
     // 디버깅: API 요청 로그
+    const finalFullUrl = (config.baseURL || '') + (config.url || '');
     console.log('[API Request]', config.method?.toUpperCase(), config.url, {
       baseURL: config.baseURL,
-      fullURL: config.baseURL + config.url,
+      fullURL: finalFullUrl,
       params: config.params,
     });
     
