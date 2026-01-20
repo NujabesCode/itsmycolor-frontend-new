@@ -63,6 +63,19 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
+    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 강제로 올바른 URL로 변경
+    const correctApiUrl = "http://13.125.130.10:3000";
+    if (config.baseURL && config.baseURL.includes('api.itsmycolorshop.com')) {
+      console.warn('[API Request] api.itsmycolorshop.com 감지 - baseURL을 올바른 URL로 강제 변경');
+      config.baseURL = correctApiUrl;
+    }
+    
+    // 전체 URL이 api.itsmycolorshop.com을 포함하는 경우도 체크
+    if (config.url && config.url.includes('api.itsmycolorshop.com')) {
+      console.warn('[API Request] URL에 api.itsmycolorshop.com 포함 - 올바른 URL로 변경');
+      config.url = config.url.replace(/https?:\/\/api\.itsmycolorshop\.com/, correctApiUrl);
+    }
+    
     const localToken = localStorage.getItem(STORAGE.TOKEN);
     const sessionToken = sessionStorage.getItem(STORAGE.TOKEN);
 
@@ -80,6 +93,7 @@ axiosInstance.interceptors.request.use(
     // 디버깅: API 요청 로그
     console.log('[API Request]', config.method?.toUpperCase(), config.url, {
       baseURL: config.baseURL,
+      fullURL: config.baseURL + config.url,
       params: config.params,
     });
     
