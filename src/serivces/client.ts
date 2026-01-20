@@ -45,15 +45,35 @@ const getApiUrl = () => {
 };
 
 // axios instance를 동적으로 생성하여 런타임에 올바른 URL 사용
+// Vercel 환경 변수가 잘못 설정되어 있어도 런타임에 강제로 올바른 URL 사용
+const getRuntimeApiUrl = () => {
+  if (typeof window === 'undefined') {
+    return "http://13.125.130.10:3000";
+  }
+  
+  const hostname = window.location.hostname;
+  
+  // 로컬 개발 환경
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `http://${hostname}:3000`;
+  }
+  
+  // 프로덕션 환경에서는 항상 올바른 URL 사용
+  // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가
+  return "http://13.125.130.10:3000";
+};
+
 export const axiosInstance = axios.create({
-  // baseURL은 interceptor에서 동적으로 설정
-  baseURL: typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? `http://${window.location.hostname}:3000`
-    : "http://13.125.130.10:3000",
+  baseURL: getRuntimeApiUrl(),
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// axios instance의 baseURL을 런타임에 강제로 설정 (빌드 시점 값 무시)
+if (typeof window !== 'undefined') {
+  axiosInstance.defaults.baseURL = getRuntimeApiUrl();
+}
 
 axiosInstance.interceptors.request.use(
   (config) => {
