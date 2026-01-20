@@ -16,38 +16,28 @@ const getApiUrl = () => {
       return `http://${hostname}:3000`;
     }
     
-    // Vercel 배포 환경에서는 항상 올바른 URL 사용
+    // Vercel 배포 환경 또는 프로덕션 환경에서는 항상 올바른 URL 사용
     // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가
-    if (hostname.includes('vercel.app') || hostname.includes('itsmycolor')) {
-      console.warn('[API URL] Vercel 배포 환경 감지 - 올바른 백엔드 URL 사용:', defaultApiUrl);
-      return defaultApiUrl;
-    }
-    
-    // 프로덕션 환경: 환경 변수 확인
-    const protocol = window.location.protocol;
-    let envApiUrl = ENV.API_URL || defaultApiUrl;
-    
-    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 강제로 올바른 URL로 변경
-    if (envApiUrl.includes('api.itsmycolorshop.com')) {
-      console.warn('[API URL] api.itsmycolorshop.com 감지 - SSL 인증서 만료로 인해 올바른 URL로 강제 변경:', defaultApiUrl);
-      envApiUrl = defaultApiUrl;
-    }
+    // 환경 변수에 관계없이 항상 올바른 URL 반환
+    console.warn('[API URL] 프로덕션 환경 감지 - 올바른 백엔드 URL 사용:', defaultApiUrl);
+    console.log('[API URL] 환경 변수 ENV.API_URL:', ENV.API_URL);
     
     // HTTPS 사이트에서 HTTP API 호출 시 Mixed Content 경고
-    if (protocol === 'https:' && envApiUrl.startsWith('http:')) {
-      console.warn('[API URL] HTTPS 사이트에서 HTTP API 호출 - Mixed Content 문제 가능성:', envApiUrl);
+    const protocol = window.location.protocol;
+    if (protocol === 'https:' && defaultApiUrl.startsWith('http:')) {
+      console.warn('[API URL] HTTPS 사이트에서 HTTP API 호출 - Mixed Content 문제 가능성:', defaultApiUrl);
     }
     
     // 디버깅 로그 (프로덕션에서도 표시)
-    console.log('[API URL]', {
-      url: envApiUrl,
+    console.log('[API URL] 최종 설정:', {
+      url: defaultApiUrl,
       fromENV: ENV.API_URL,
       hostname,
       protocol,
       isVercel: hostname.includes('vercel.app'),
     });
     
-    return envApiUrl;
+    return defaultApiUrl;
   }
   
   // 서버 사이드: 항상 올바른 URL 사용
@@ -66,9 +56,9 @@ axiosInstance.interceptors.request.use(
     // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 강제로 올바른 URL로 변경
     const correctApiUrl = "http://13.125.130.10:3000";
     
-    // baseURL이 api.itsmycolorshop.com을 포함하는 경우 강제 변경
-    if (config.baseURL && config.baseURL.includes('api.itsmycolorshop.com')) {
-      console.warn('[API Request] api.itsmycolorshop.com 감지 - baseURL을 올바른 URL로 강제 변경');
+    // baseURL을 항상 올바른 URL로 강제 설정
+    if (!config.baseURL || config.baseURL.includes('api.itsmycolorshop.com')) {
+      console.warn('[API Request] baseURL을 올바른 URL로 강제 변경:', config.baseURL, '->', correctApiUrl);
       config.baseURL = correctApiUrl;
     }
     
@@ -78,10 +68,10 @@ axiosInstance.interceptors.request.use(
       if (config.url.startsWith('http://') || config.url.startsWith('https://')) {
         fullUrl = config.url;
       } else {
-        fullUrl = (config.baseURL || '') + config.url;
+        fullUrl = (config.baseURL || correctApiUrl) + config.url;
       }
     } else {
-      fullUrl = config.baseURL || '';
+      fullUrl = config.baseURL || correctApiUrl;
     }
     
     // 전체 URL에서 api.itsmycolorshop.com을 올바른 URL로 변경
@@ -100,6 +90,12 @@ axiosInstance.interceptors.request.use(
       }
     }
     
+    // 최종 확인: baseURL이 올바른지 체크
+    if (config.baseURL && config.baseURL !== correctApiUrl && !config.baseURL.includes('localhost')) {
+      console.warn('[API Request] baseURL이 예상과 다릅니다. 올바른 URL로 변경:', config.baseURL, '->', correctApiUrl);
+      config.baseURL = correctApiUrl;
+    }
+    
     const localToken = localStorage.getItem(STORAGE.TOKEN);
     const sessionToken = sessionStorage.getItem(STORAGE.TOKEN);
 
@@ -115,7 +111,7 @@ axiosInstance.interceptors.request.use(
     }
     
     // 디버깅: API 요청 로그
-    const finalFullUrl = (config.baseURL || '') + (config.url || '');
+    const finalFullUrl = (config.baseURL || correctApiUrl) + (config.url || '');
     console.log('[API Request]', config.method?.toUpperCase(), config.url, {
       baseURL: config.baseURL,
       fullURL: finalFullUrl,
