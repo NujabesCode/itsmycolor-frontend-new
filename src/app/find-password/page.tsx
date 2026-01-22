@@ -11,8 +11,19 @@ function FindPasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenParam = searchParams.get("token");
-  // URL 인코딩된 토큰 디코딩
-  const token = tokenParam ? decodeURIComponent(tokenParam) : null;
+  // Next.js의 useSearchParams는 이미 디코딩된 값을 반환하지만,
+  // 이중 인코딩된 경우를 대비해 디코딩 시도
+  let token = tokenParam;
+  if (tokenParam) {
+    try {
+      // 이미 디코딩된 경우를 확인하기 위해 인코딩 후 비교
+      const decoded = decodeURIComponent(tokenParam);
+      token = decoded;
+    } catch (e) {
+      // 디코딩 실패 시 원본 사용
+      token = tokenParam;
+    }
+  }
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,7 +47,14 @@ function FindPasswordPageContent() {
 
     setIsLoading(true);
     try {
-      console.log("비밀번호 재설정 시도:", { token: token?.substring(0, 20) + "...", passwordLength: password.length });
+      console.log("비밀번호 재설정 시도:", { 
+        token: token ? (token.length > 20 ? token.substring(0, 20) + "..." : token) : "없음",
+        tokenLength: token?.length,
+        passwordLength: password.length 
+      });
+      if (!token) {
+        throw new Error("토큰이 없습니다.");
+      }
       await emailApi.resetPassword(token, password);
       alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인 해주세요.");
       router.replace(ROUTE.SIGNIN);
