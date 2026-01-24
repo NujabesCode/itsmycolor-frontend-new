@@ -6,7 +6,24 @@ import { ProductMainView, BodyTypeView } from "@/components/main/ProductMainView
 import { BannerSlider } from "@/components/main/BannerSlider";
 import { UserRecommendView } from "@/components/main/UserRecommendView";
 
-export default function Main() {
+// 빌드 시점에 API 데이터를 가져옴 (정적 생성)
+async function getMainProducts() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.125.130.10:3000';
+    const res = await fetch(`${apiUrl}/products/main`, {
+      next: { revalidate: 60 }, // 60초마다 재검증
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (error) {
+    console.error('Failed to fetch main products:', error);
+    return null;
+  }
+}
+
+export default async function Main() {
+  // 빌드 시점에 데이터 가져오기
+  const initialMainProducts = await getMainProducts();
   return (
     <main className="min-h-screen bg-white">
       {/* Main Banner Slider */}
@@ -74,7 +91,7 @@ export default function Main() {
             <h2 className="text-lg md:text-xl font-normal" style={{ color: 'var(--season_color_04)' }}>퍼스널 컬러별 추천</h2>
           </div>
           <Suspense fallback={<div className="h-80 bg-gray-50" />}>
-            <ProductMainView />
+            <ProductMainView initialData={initialMainProducts} />
           </Suspense>
         </div>
       </section>
@@ -86,7 +103,7 @@ export default function Main() {
             <h2 className="text-lg md:text-xl font-normal" style={{ color: 'var(--season_color_04)' }}>체형별 추천</h2>
           </div>
           <Suspense fallback={<div className="h-80 bg-gray-50" />}>
-            <BodyTypeView />
+            <BodyTypeView initialData={initialMainProducts} />
           </Suspense>
         </div>
       </section>
