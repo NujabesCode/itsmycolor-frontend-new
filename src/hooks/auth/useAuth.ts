@@ -111,7 +111,13 @@ export const useAuth = () => {
   };
 
   const getToken = () => {
-    return localStorage.getItem(STORAGE.TOKEN) || sessionStorage.getItem(STORAGE.TOKEN);
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem(STORAGE.TOKEN) || sessionStorage.getItem(STORAGE.TOKEN);
+    } catch (error) {
+      console.error('[useAuth] Storage access error:', error);
+      return null;
+    }
   };
 
   return { register, socialRegister, login, socialLogin, logout, getToken };

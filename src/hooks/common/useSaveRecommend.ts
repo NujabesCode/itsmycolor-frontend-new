@@ -19,6 +19,7 @@ export const useSaveRecommend = (product?: Product) => {
 
   useEffect(() => {
     if (!product) return;
+    if (typeof window === 'undefined') return;
 
     if (doubleCheckRef.current) return;
     doubleCheckRef.current = true;

@@ -28,7 +28,15 @@ function SignInContent() {
 
   // LG-007: 자동로그인 기능 - localStorage에 토큰이 있으면 자동으로 판매자 메인 페이지로 이동
   useEffect(() => {
-    const token = localStorage.getItem(STORAGE.TOKEN);
+    if (typeof window === 'undefined') return;
+    
+    let token: string | null = null;
+    try {
+      token = localStorage.getItem(STORAGE.TOKEN);
+    } catch (error) {
+      console.error('[SellerSignIn] Storage access error:', error);
+      return;
+    }
     
     if (token && !isUserLoading && user) {
       // 판매자 권한이 있고 브랜드가 승인된 경우에만 자동 로그인

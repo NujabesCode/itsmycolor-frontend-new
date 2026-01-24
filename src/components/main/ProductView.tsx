@@ -39,6 +39,7 @@ export const ProductView = ({type}: {type: 'user' | 'recommend' | 'all' | 'new'}
 
   useEffect(() => {
     if (type !== 'recommend') return;
+    if (typeof window === 'undefined') return;
 
     const getMostFrequent = (list: string[]): string | undefined => {
       if (!Array.isArray(list) || list.length === 0) return undefined;

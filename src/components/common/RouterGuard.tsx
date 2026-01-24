@@ -20,9 +20,18 @@ export const RouterGuard = () => {
   const to = `${pathname}?${queryString}`;
 
   useEffect(() => {
-    const token =
-      localStorage.getItem(STORAGE.TOKEN) ||
-      sessionStorage.getItem(STORAGE.TOKEN);
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return;
+    
+    let token: string | null = null;
+    try {
+      token =
+        localStorage.getItem(STORAGE.TOKEN) ||
+        sessionStorage.getItem(STORAGE.TOKEN);
+    } catch (error) {
+      console.error('[RouterGuard] Storage access error:', error);
+      return;
+    }
 
     // admin 페이지 접근 시 권한 확인 (AdminLayout에서도 처리하지만 이중 체크)
     if (pathname.startsWith(ROUTE.ADMIN_MAIN) && !pathname.startsWith(ROUTE.ADMIN_SIGNIN) && !pathname.startsWith(ROUTE.ADMIN_SIGNUP)) {
