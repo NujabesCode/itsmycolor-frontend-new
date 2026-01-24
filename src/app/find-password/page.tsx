@@ -10,9 +10,7 @@ import { IoLockClosedOutline } from "react-icons/io5";
 export default function FindPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tokenParam = searchParams.get("token");
-  // 토큰 앞뒤 공백 제거
-  const token = tokenParam?.trim() || null;
+  const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,18 +34,11 @@ export default function FindPasswordPage() {
 
     setIsLoading(true);
     try {
-      console.log('[프론트엔드] 비밀번호 재설정 요청:', {
-        tokenLength: token.length,
-        tokenPrefix: token.substring(0, 20),
-      });
-      
       await emailApi.resetPassword(token, password);
       alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인 해주세요.");
       router.replace(ROUTE.SIGNIN);
-    } catch (error: any) {
-      console.error('[프론트엔드] 비밀번호 재설정 에러:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || "비밀번호 변경에 실패했습니다. 링크가 만료되었거나 유효하지 않습니다.";
-      alert(errorMessage);
+    } catch (error) {
+      alert("비밀번호 변경에 실패했습니다. 링크가 만료되었거나 유효하지 않습니다.");
     } finally {
       setIsLoading(false);
     }
