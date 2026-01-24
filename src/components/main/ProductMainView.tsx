@@ -70,14 +70,32 @@ const COLOR_SEASON_DESCRIPTIONS: Record<string, string> = {
   [ColorSeason.WINTER_BRIGHT]: '쨍하고 선명한 원색, 또렷하고 존재감 있는 겨울브라이트',
 };
 
+// 정적 초기 데이터 (빌드 시점에 포함됨)
+const STATIC_MAIN_PRODUCTS: Record<string, any> = {
+  "Spring Bright": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/4daff12a-3220-43bc-a01d-cb6c1c758737.JPG" },
+  "Spring Light": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/be51daa1-536d-49be-a7ba-83236a56762e.png" },
+  "Summer Light": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/16b02ad1-c0c0-440e-9255-cff5f321c21a.png" },
+  "Summer Mute": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/4b4442ba-8f7d-4bf7-8ee4-42e18a3adf6e.PNG" },
+  "Autumn Mute": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/7c4c3660-5fcf-4de8-846a-d2ea6e698c5a.PNG" },
+  "Autumn Deep": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/1c1e5d99-359c-4e7f-85d2-51cce683f6d2.PNG" },
+  "Winter Dark": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/78dd0ebf-d389-441d-b128-268af640640e.png" },
+  "Winter Bright": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/60355889-affb-42ba-a971-7da1245ffea1.JPG" },
+  "스트레이트": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/b098982b-ede0-4cb0-87f0-e472d07a1170.png" },
+  "웨이브": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/16b02ad1-c0c0-440e-9255-cff5f321c21a.png" },
+  "내추럴": { imageUrl: "https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com/products/081dfdb7-dfb9-4539-aab6-9a24e83128c4.png" },
+};
+
 export const ProductMainView = () => {
   const { data: mainProductsRaw, isLoading } = useGetMainProducts();
   const isPC = useMediaQuery("(min-width: 1024px)"); // Tailwind 'lg' breakpoint
   const router = useRouter();
   const pathname = usePathname();
 
+  // API 데이터가 없으면 정적 데이터 사용 (즉시 이미지 표시)
+  const rawData = mainProductsRaw || STATIC_MAIN_PRODUCTS;
+  
   // 배열이 오는 경우를 처리 (백엔드가 객체를 반환해야 하는데 배열로 오는 경우 대비)
-  const mainProducts = Array.isArray(mainProductsRaw) ? {} : (mainProductsRaw || {});
+  const mainProducts = Array.isArray(rawData) ? STATIC_MAIN_PRODUCTS : rawData;
 
   // 분리된 Key 배열
   const COLOR_KEYS = isPC ? COLOR_SEASON_KEYS_PC : COLOR_SEASON_KEYS_MOBILE;
@@ -172,10 +190,7 @@ export const ProductMainView = () => {
       {/* Color Season Grid - attrangs 스타일 */}
       <div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-          {isLoading
-            ? Array(8).fill(0).map((_, i) => <div key={i}>{renderSkeleton()}</div>)
-            : COLOR_KEYS.map((key, index) => renderColorSeasonItem(key, index))
-          }
+          {COLOR_KEYS.map((key, index) => renderColorSeasonItem(key, index))}
         </div>
       </div>
     </div>
@@ -184,12 +199,15 @@ export const ProductMainView = () => {
 
 // 체형별 추천 컴포넌트
 export const BodyTypeView = () => {
-  const { data: mainProductsRaw, isLoading } = useGetMainProducts();
+  const { data: mainProductsRaw } = useGetMainProducts();
   const router = useRouter();
   const pathname = usePathname();
 
+  // API 데이터가 없으면 정적 데이터 사용 (즉시 이미지 표시)
+  const rawData = mainProductsRaw || STATIC_MAIN_PRODUCTS;
+  
   // 배열이 오는 경우를 처리 (백엔드가 객체를 반환해야 하는데 배열로 오는 경우 대비)
-  const mainProducts = Array.isArray(mainProductsRaw) ? {} : (mainProductsRaw || {});
+  const mainProducts = Array.isArray(rawData) ? STATIC_MAIN_PRODUCTS : rawData;
 
   const BT_KEYS = BODY_TYPE_KEYS;
 
@@ -263,21 +281,10 @@ export const BodyTypeView = () => {
     );
   };
 
-  const renderSkeleton = () => (
-    <div className="space-y-2 animate-pulse">
-      <div className="aspect-[3/4] bg-gray-200 rounded-lg"></div>
-      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-    </div>
-  );
-
   return (
     <div className="max-w-[1200px] mx-auto">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
-        {isLoading
-          ? Array(6).fill(0).map((_, i) => <div key={i}>{renderSkeleton()}</div>)
-          : BT_KEYS.map((key, index) => renderBodyTypeItem(key, index))
-        }
+        {BT_KEYS.map((key, index) => renderBodyTypeItem(key, index))}
       </div>
     </div>
   );
