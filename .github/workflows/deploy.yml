@@ -1,4 +1,4 @@
-name: Deploy Backend to EC2
+name: Deploy Frontend to S3
 
 on:
   push:
@@ -9,20 +9,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_PORT }}
-          script: |
-            cd itsmycolor-frontend
-            git remote set-url origin https://github.com/BOLTLAB-DEV/itsmycolor-frontend.git
-            # 저장소 인증 설정
-            git config --global credential.helper store
-            echo "https://${{ secrets.GH_USERNAME }}:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
-            git pull
-            npm i --force
-            npm run build
-            pm2 restart itsmycolor-frontend || pm2 start "npm run start" --name itsmycolor-frontend
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install --force
+
+      - name: Build Next.js
+        run: |
+          npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync out s3://itsmycolor-frontend --delete --region ap-northeast-2
+
+      - name: Configure S3 bucket website
+        run: |
+          aws s3api put-bucket-website \
+            --bucket itsmycolor-frontend \
+            --website-configuration '{
+              "IndexDocument": {"Suffix": "index.html"},
+              "ErrorDocument": {"Key": "404.html"}
+            }' \
+            --region ap-northeast-2
+
+      - name: Set bucket policy for public read
+        run: |
+          aws s3api put-bucket-policy \
+            --bucket itsmycolor-frontend \
+            --policy '{
+              "Version": "2012-10-17",
+              "Statement": [{
+                "Sid": "PublicReadGetObject",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::itsmycolor-frontend/*"
+              }]
+            }' \
+            --region ap-northeast-2
