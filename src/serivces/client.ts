@@ -60,7 +60,9 @@ const getRuntimeApiUrl = () => {
   
   // 프로덕션 환경에서는 항상 올바른 URL 사용
   // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가
-  return "http://13.125.130.10:3000";
+  const correctUrl = "http://13.125.130.10:3000";
+  console.log('[getRuntimeApiUrl] 올바른 API URL 반환:', correctUrl);
+  return correctUrl;
 };
 
 export const axiosInstance = axios.create({
@@ -72,7 +74,9 @@ export const axiosInstance = axios.create({
 
 // axios instance의 baseURL을 런타임에 강제로 설정 (빌드 시점 값 무시)
 if (typeof window !== 'undefined') {
-  axiosInstance.defaults.baseURL = getRuntimeApiUrl();
+  const correctUrl = getRuntimeApiUrl();
+  axiosInstance.defaults.baseURL = correctUrl;
+  console.log('[axiosInstance] baseURL 강제 설정:', correctUrl);
 }
 
 axiosInstance.interceptors.request.use(
@@ -83,10 +87,19 @@ axiosInstance.interceptors.request.use(
       : "http://13.125.130.10:3000";
     
     // baseURL을 항상 올바른 URL로 강제 설정 (빌드 시점에 잘못된 값이 포함되어 있어도 런타임에 수정)
+    // api.itsmycolorshop.com이 포함되어 있으면 무조건 변경
     if (!config.baseURL || config.baseURL.includes('api.itsmycolorshop.com') || config.baseURL !== correctApiUrl) {
-      if (config.baseURL && config.baseURL.includes('api.itsmycolorshop.com')) {
-        console.warn('[API Request] api.itsmycolorshop.com 감지 - baseURL을 올바른 URL로 강제 변경:', config.baseURL, '->', correctApiUrl);
+      if (config.baseURL && (config.baseURL.includes('api.itsmycolorshop.com') || config.baseURL !== correctApiUrl)) {
+        console.warn('[API Request] 잘못된 baseURL 감지 - 올바른 URL로 강제 변경:', config.baseURL, '->', correctApiUrl);
       }
+      config.baseURL = correctApiUrl;
+    }
+    
+    // url이 전체 URL로 시작하는 경우도 확인
+    if (config.url && (config.url.startsWith('https://api.itsmycolorshop.com') || config.url.startsWith('http://api.itsmycolorshop.com'))) {
+      console.warn('[API Request] url에 api.itsmycolorshop.com 포함 - 경로만 추출');
+      const urlPath = config.url.replace(/https?:\/\/api\.itsmycolorshop\.com/, '');
+      config.url = urlPath;
       config.baseURL = correctApiUrl;
     }
     
