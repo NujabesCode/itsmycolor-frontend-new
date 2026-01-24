@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export const useQueryString = <T extends string | number | boolean | string[]>(
@@ -9,12 +9,22 @@ export const useQueryString = <T extends string | number | boolean | string[]>(
 ) => {
   const router = useRouter();
   const pathname = usePathname();
+  
+  // 클라이언트 사이드에서만 searchParams 사용
+  const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // 마운트 전에는 빈 URLSearchParams 사용
+  const safeSearchParams = mounted ? searchParams : new URLSearchParams();
 
   const value = (
-    searchParams.has(key)
+    safeSearchParams.has(key)
       ? (() => {
-          const param = searchParams.get(key) ?? defaultValue;
+          const param = safeSearchParams.get(key) ?? defaultValue;
 
           switch (typeof defaultValue) {
             case "number":
@@ -37,7 +47,7 @@ export const useQueryString = <T extends string | number | boolean | string[]>(
 
   const setValue = useCallback(
     (value: T, prevParams?: URLSearchParams) => {
-      const params = new URLSearchParams(prevParams ?? searchParams);
+      const params = new URLSearchParams(prevParams ?? safeSearchParams);
 
       switch (typeof value) {
         case "object":
@@ -50,7 +60,7 @@ export const useQueryString = <T extends string | number | boolean | string[]>(
       router.push(`${pathname}?${params}`, { scroll: false });
       return params;
     },
-    [key, pathname, searchParams, router]
+    [key, pathname, safeSearchParams, router]
   );
 
   return [value, setValue] as const;
