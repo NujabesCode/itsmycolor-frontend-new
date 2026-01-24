@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 export const useQueryString = <T extends string | number | boolean | string[]>(
   key: string,
@@ -10,21 +10,31 @@ export const useQueryString = <T extends string | number | boolean | string[]>(
   const router = useRouter();
   const pathname = usePathname();
   
-  // 클라이언트 사이드에서만 searchParams 사용
-  const [mounted, setMounted] = useState(false);
-  const searchParams = useSearchParams();
+  // 클라이언트 사이드에서 window.location.search를 직접 사용
+  const [search, setSearch] = useState<string>('');
   
   useEffect(() => {
-    setMounted(true);
+    if (typeof window !== 'undefined') {
+      setSearch(window.location.search);
+      
+      // URL 변경 감지
+      const handlePopState = () => {
+        setSearch(window.location.search);
+      };
+      
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
   }, []);
   
-  // 마운트 전에는 빈 URLSearchParams 사용
-  const safeSearchParams = mounted ? searchParams : new URLSearchParams();
+  const searchParams = useMemo(() => {
+    return new URLSearchParams(search);
+  }, [search]);
 
   const value = (
-    safeSearchParams.has(key)
+    searchParams.has(key)
       ? (() => {
-          const param = safeSearchParams.get(key) ?? defaultValue;
+          const param = searchParams.get(key) ?? defaultValue;
 
           switch (typeof defaultValue) {
             case "number":
@@ -47,7 +57,7 @@ export const useQueryString = <T extends string | number | boolean | string[]>(
 
   const setValue = useCallback(
     (value: T, prevParams?: URLSearchParams) => {
-      const params = new URLSearchParams(prevParams ?? safeSearchParams);
+      const params = new URLSearchParams(prevParams ?? searchParams);
 
       switch (typeof value) {
         case "object":
@@ -58,9 +68,13 @@ export const useQueryString = <T extends string | number | boolean | string[]>(
       }
 
       router.push(`${pathname}?${params}`, { scroll: false });
+      // URL 변경 후 search 상태 업데이트
+      if (typeof window !== 'undefined') {
+        setSearch(window.location.search);
+      }
       return params;
     },
-    [key, pathname, safeSearchParams, router]
+    [key, pathname, searchParams, router]
   );
 
   return [value, setValue] as const;
