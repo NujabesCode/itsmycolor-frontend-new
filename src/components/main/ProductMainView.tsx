@@ -70,24 +70,14 @@ const COLOR_SEASON_DESCRIPTIONS: Record<string, string> = {
   [ColorSeason.WINTER_BRIGHT]: '쨍하고 선명한 원색, 또렷하고 존재감 있는 겨울브라이트',
 };
 
-interface ProductMainViewProps {
-  initialData?: Record<string, any> | null;
-}
-
-export const ProductMainView = ({ initialData }: ProductMainViewProps) => {
+export const ProductMainView = () => {
   const { data: mainProductsRaw, isLoading } = useGetMainProducts();
   const isPC = useMediaQuery("(min-width: 1024px)"); // Tailwind 'lg' breakpoint
   const router = useRouter();
   const pathname = usePathname();
 
-  // 초기 데이터가 있으면 사용, 없으면 API 호출 결과 사용
-  const rawData = mainProductsRaw || initialData;
-  
   // 배열이 오는 경우를 처리 (백엔드가 객체를 반환해야 하는데 배열로 오는 경우 대비)
-  const mainProducts = Array.isArray(rawData) ? {} : (rawData || {});
-  
-  // 초기 데이터가 있으면 로딩 상태 무시
-  const showLoading = isLoading && !initialData;
+  const mainProducts = Array.isArray(mainProductsRaw) ? {} : (mainProductsRaw || {});
 
   // 분리된 Key 배열
   const COLOR_KEYS = isPC ? COLOR_SEASON_KEYS_PC : COLOR_SEASON_KEYS_MOBILE;
@@ -182,7 +172,7 @@ export const ProductMainView = ({ initialData }: ProductMainViewProps) => {
       {/* Color Season Grid - attrangs 스타일 */}
       <div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-          {showLoading
+          {isLoading
             ? Array(8).fill(0).map((_, i) => <div key={i}>{renderSkeleton()}</div>)
             : COLOR_KEYS.map((key, index) => renderColorSeasonItem(key, index))
           }
@@ -193,20 +183,13 @@ export const ProductMainView = ({ initialData }: ProductMainViewProps) => {
 };
 
 // 체형별 추천 컴포넌트
-interface BodyTypeViewProps {
-  initialData?: Record<string, any> | null;
-}
-
-export const BodyTypeView = ({ initialData }: BodyTypeViewProps) => {
-  const { data: mainProductsRaw } = useGetMainProducts();
+export const BodyTypeView = () => {
+  const { data: mainProductsRaw, isLoading } = useGetMainProducts();
   const router = useRouter();
   const pathname = usePathname();
 
-  // 초기 데이터가 있으면 사용, 없으면 API 호출 결과 사용
-  const rawData = mainProductsRaw || initialData;
-  
   // 배열이 오는 경우를 처리 (백엔드가 객체를 반환해야 하는데 배열로 오는 경우 대비)
-  const mainProducts = Array.isArray(rawData) ? {} : (rawData || {});
+  const mainProducts = Array.isArray(mainProductsRaw) ? {} : (mainProductsRaw || {});
 
   const BT_KEYS = BODY_TYPE_KEYS;
 
@@ -280,10 +263,21 @@ export const BodyTypeView = ({ initialData }: BodyTypeViewProps) => {
     );
   };
 
+  const renderSkeleton = () => (
+    <div className="space-y-2 animate-pulse">
+      <div className="aspect-[3/4] bg-gray-200 rounded-lg"></div>
+      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+    </div>
+  );
+
   return (
     <div className="max-w-[1200px] mx-auto">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
-        {BT_KEYS.map((key, index) => renderBodyTypeItem(key, index))}
+        {isLoading
+          ? Array(6).fill(0).map((_, i) => <div key={i}>{renderSkeleton()}</div>)
+          : BT_KEYS.map((key, index) => renderBodyTypeItem(key, index))
+        }
       </div>
     </div>
   );
