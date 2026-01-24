@@ -103,28 +103,25 @@ axiosInstance.interceptors.request.use(
       config.baseURL = correctApiUrl;
     }
     
-    // 전체 URL 생성 (baseURL + url)
-    let fullUrl = '';
-    if (config.url) {
-      if (config.url.startsWith('http://') || config.url.startsWith('https://')) {
-        fullUrl = config.url;
+    // url이 전체 URL로 시작하는 경우 (http:// 또는 https://)
+    if (config.url && (config.url.startsWith('http://') || config.url.startsWith('https://'))) {
+      // api.itsmycolorshop.com이 포함되어 있으면 올바른 URL로 변경
+      if (config.url.includes('api.itsmycolorshop.com')) {
+        console.warn('[API Request] url에 api.itsmycolorshop.com 포함 - 올바른 URL로 강제 변경');
+        const urlPath = config.url.replace(/https?:\/\/api\.itsmycolorshop\.com/, '');
+        config.url = urlPath;
+        config.baseURL = correctApiUrl;
       } else {
-        fullUrl = (config.baseURL || correctApiUrl) + config.url;
+        // 다른 전체 URL인 경우도 baseURL 무시하고 사용
+        config.baseURL = '';
       }
     } else {
-      fullUrl = config.baseURL || correctApiUrl;
-    }
-    
-    // 전체 URL에서 api.itsmycolorshop.com을 올바른 URL로 변경
-    if (fullUrl.includes('api.itsmycolorshop.com')) {
-      console.warn('[API Request] 전체 URL에 api.itsmycolorshop.com 포함 - 올바른 URL로 강제 변경');
-      fullUrl = fullUrl.replace(/https?:\/\/api\.itsmycolorshop\.com/g, correctApiUrl);
+      // 상대 경로인 경우 baseURL과 결합
+      const fullUrl = (config.baseURL || correctApiUrl) + (config.url || '');
       
-      // 변경된 URL을 baseURL과 url로 분리
-      if (config.url && (config.url.startsWith('http://') || config.url.startsWith('https://'))) {
-        config.url = fullUrl;
-        config.baseURL = '';
-      } else {
+      // 전체 URL에서 api.itsmycolorshop.com을 올바른 URL로 변경
+      if (fullUrl.includes('api.itsmycolorshop.com')) {
+        console.warn('[API Request] 전체 URL에 api.itsmycolorshop.com 포함 - 올바른 URL로 강제 변경');
         const urlPath = config.url || '';
         config.baseURL = correctApiUrl;
         config.url = urlPath;
