@@ -30,7 +30,8 @@ export default function AdminLayout({
     // ADM-004, ADM-005: 권한 검증 즉시 처리
     if (!token) {
       alert("로그인이 필요합니다.");
-      router.replace(`${ROUTE.ADMIN_SIGNIN}?to=${btoa(pathname)}`);
+      // 정적 export 모드에서는 .html 확장자 추가
+      router.replace(`${ROUTE.ADMIN_SIGNIN}.html?to=${btoa(pathname)}`);
       return;
     }
 
@@ -45,7 +46,8 @@ export default function AdminLayout({
     } else if (!isLoading && !user) {
       // 토큰은 있지만 사용자 정보를 가져올 수 없는 경우
       alert("로그인이 필요합니다.");
-      router.replace(ROUTE.ADMIN_SIGNIN);
+      // 정적 export 모드에서는 .html 확장자 추가
+      router.replace(`${ROUTE.ADMIN_SIGNIN}.html`);
     }
   }, [user, isLoading, pathname, router]);
 

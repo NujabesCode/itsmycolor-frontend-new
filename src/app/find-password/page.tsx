@@ -38,7 +38,8 @@ export default function FindPasswordPage() {
       const response = await emailApi.resetPassword(token, password);
       console.log('[프론트엔드] 비밀번호 재설정 성공:', response);
       alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인 해주세요.");
-      router.replace(ROUTE.SIGNIN);
+      // S3 정적 호스팅을 위해 .html 확장자 사용
+      window.location.href = `${ROUTE.SIGNIN}.html`;
     } catch (error: any) {
       console.error('[프론트엔드] 비밀번호 재설정 에러:', error);
       console.error('[프론트엔드] 에러 상세:', {

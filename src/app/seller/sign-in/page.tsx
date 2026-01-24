@@ -61,7 +61,7 @@ function SignInContent() {
       const { hasBrand, isBrandApproved } = await login(email, password, isAutoLogin);
 
       if (!hasBrand) {
-        router.push(ROUTE.APPLY_NEW);
+        window.location.href = `${ROUTE.APPLY_NEW}.html`;
         alert("브랜드 입점 신청서를 작성해주세요.");
         return;
       }
@@ -69,9 +69,13 @@ function SignInContent() {
       if (isBrandApproved) {
         // LG-008: 로그인 후 원래 보던 페이지로 복귀
         if (to) {
-          router.replace(atob(to));
+          const targetPath = atob(to);
+          const targetPathWithHtml = targetPath.includes('?') 
+            ? `${targetPath.split('?')[0]}.html?${targetPath.split('?')[1]}`
+            : `${targetPath}.html`;
+          window.location.href = targetPathWithHtml;
         } else {
-          router.push(ROUTE.SELLER_MAIN);
+          window.location.href = `${ROUTE.SELLER_MAIN}.html`;
         }
         return;
       } else {
@@ -91,7 +95,7 @@ function SignInContent() {
       } else if (errorMessage.includes("권한이 없습니다") || errorMessage.includes("판매자 권한")) {
         // LG-002: 일반 고객 계정 로그인 시 판매자 권한 없음 메시지
         alert("판매자 권한이 없습니다. 판매자 계정으로 로그인해주세요.");
-        router.push(ROUTE.APPLY_NEW);
+        window.location.href = `${ROUTE.APPLY_NEW}.html`;
       } else {
         alert(errorMessage);
       }

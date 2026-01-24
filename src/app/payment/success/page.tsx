@@ -34,7 +34,7 @@ export default function PaymentSuccess() {
         });
         setPayment(tempPayment);
       } catch (error) {
-        router.push(ROUTE.PAYMENT_FAIL);
+        window.location.href = `${ROUTE.PAYMENT_FAIL}.html`;
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -246,18 +246,18 @@ export default function PaymentSuccess() {
 
         {/* 하단 버튼 */}
         <div className="px-8 py-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
-          <Link
-            href={ROUTE.MYPAGE_ORDER}
+          <a
+            href={`${ROUTE.MYPAGE_ORDER}.html`}
             className="flex-1 bg-white border border-gray-200 rounded-lg py-3 px-4 text-center text-gray-700 hover:bg-gray-50 transition-colors"
           >
             주문 내역 확인
-          </Link>
-          <Link
-            href={ROUTE.SHOPPING}
+          </a>
+          <a
+            href={`${ROUTE.SHOPPING}.html`}
             className="flex-1 bg-gray-900 rounded-lg py-3 px-4 text-center text-white hover:bg-gray-800 transition-colors"
           >
             쇼핑 계속하기
-          </Link>
+          </a>
         </div>
       </div>
     </div>

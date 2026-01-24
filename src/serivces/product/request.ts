@@ -3,6 +3,40 @@ import { ColorSeason } from '../color-analysis/type';
 import { BodyType } from '../user/type';
 import { Product, ProductListItem, StyleCategory, MainProducts, Gender } from './type';
 
+// 백엔드 slotKey를 프론트엔드 enum 키로 매핑
+const SLOT_KEY_TO_COLOR_SEASON: Record<string, ColorSeason> = {
+  'autumn deep': ColorSeason.AUTUMN_DEEP,
+  'autumn mute': ColorSeason.AUTUMN_MUTE,
+  'spring bright': ColorSeason.SPRING_BRIGHT,
+  'spring light': ColorSeason.SPRING_LIGHT,
+  'summer light': ColorSeason.SUMMER_LIGHT,
+  'summer mute': ColorSeason.SUMMER_MUTE,
+  'winter bright': ColorSeason.WINTER_BRIGHT,
+  'winter dark': ColorSeason.WINTER_DARK,
+  // 대소문자 변형도 고려
+  'Autumn Deep': ColorSeason.AUTUMN_DEEP,
+  'Autumn Mute': ColorSeason.AUTUMN_MUTE,
+  'Spring Bright': ColorSeason.SPRING_BRIGHT,
+  'Spring Light': ColorSeason.SPRING_LIGHT,
+  'Summer Light': ColorSeason.SUMMER_LIGHT,
+  'Summer Mute': ColorSeason.SUMMER_MUTE,
+  'Winter Bright': ColorSeason.WINTER_BRIGHT,
+  'Winter Dark': ColorSeason.WINTER_DARK,
+};
+
+const SLOT_KEY_TO_BODY_TYPE: Record<string, BodyType> = {
+  '내추럴': BodyType.NATURAL,
+  '스트레이트': BodyType.STRAIGHT,
+  '웨이브': BodyType.WAVE,
+  'Natural': BodyType.NATURAL,
+  'Straight': BodyType.STRAIGHT,
+  'Wave': BodyType.WAVE,
+  // 소문자 변형
+  'natural': BodyType.NATURAL,
+  'straight': BodyType.STRAIGHT,
+  'wave': BodyType.WAVE,
+};
+
 export const productApi = {
   createProduct: async (data: {
     name: string;
@@ -302,6 +336,73 @@ export const productApi = {
   // 메인 페이지 상품 조회
   getMainProducts: async (): Promise<MainProducts> => {
     const res = await axiosInstance.get('/products/main');
-    return res.data;
+    const data = res.data;
+    console.log('[getMainProducts] API 응답:', data, '타입:', Array.isArray(data) ? 'Array' : typeof data);
+    
+    // 백엔드가 배열을 반환하는 경우 (MainSectionAssignment 배열)
+    if (Array.isArray(data)) {
+      console.warn('[getMainProducts] 백엔드가 배열을 반환했습니다. 객체로 변환합니다.');
+      // 배열을 객체로 변환: slotKey를 키로, product를 값으로
+      const result: MainProducts = {} as MainProducts;
+      
+      for (const item of data) {
+        // item은 MainSectionAssignment 형식: { slotKey, product, ... }
+        if (item.slotKey && item.product) {
+          const slotKey = item.slotKey;
+          // product가 Product 엔티티인 경우 ProductResponseDto로 변환 필요
+          // 하지만 이미 필요한 필드가 있으므로 그대로 사용
+          const product = item.product;
+          
+          // slotKey를 프론트엔드 enum 키로 매핑
+          // 소문자로 정규화
+          const normalizedSlotKey = slotKey.trim().toLowerCase();
+          
+          // ColorSeason 매핑 시도
+          let enumKey: string | null = null;
+          if (SLOT_KEY_TO_COLOR_SEASON[normalizedSlotKey]) {
+            enumKey = SLOT_KEY_TO_COLOR_SEASON[normalizedSlotKey];
+          } else if (SLOT_KEY_TO_COLOR_SEASON[slotKey.trim()]) {
+            enumKey = SLOT_KEY_TO_COLOR_SEASON[slotKey.trim()];
+          } else if (SLOT_KEY_TO_BODY_TYPE[slotKey.trim()]) {
+            enumKey = SLOT_KEY_TO_BODY_TYPE[slotKey.trim()];
+          } else if (SLOT_KEY_TO_BODY_TYPE[normalizedSlotKey]) {
+            enumKey = SLOT_KEY_TO_BODY_TYPE[normalizedSlotKey];
+          }
+          
+          if (enumKey) {
+            // product 정보 추출
+            (result as any)[enumKey] = {
+              id: product.id,
+              name: product.name,
+              imageUrl: product.imageUrl,
+              price: product.price,
+              usdPrice: product.usdPrice,
+              stockQuantity: product.stockQuantity,
+              recommendedColorSeason: product.recommendedColorSeason,
+              recommendedBodyType: product.recommendedBodyType,
+              recommendedGender: product.recommendedGender,
+              brand: product.brand,
+              isAvailable: product.isAvailable,
+              brandInfo: product.brandEntity ? {
+                id: product.brandEntity.id,
+                name: product.brandEntity.name,
+                logoUrl: product.brandEntity.logoUrl,
+              } : undefined,
+              createdAt: product.createdAt,
+            };
+            console.log(`[getMainProducts] ${slotKey} -> ${enumKey}: ${product.imageUrl || 'N/A'}`);
+          } else {
+            console.warn(`[getMainProducts] 매핑되지 않은 slotKey: ${slotKey}`);
+          }
+        }
+      }
+      
+      console.log('[getMainProducts] 변환된 객체:', result);
+      console.log('[getMainProducts] 변환된 객체 키:', Object.keys(result));
+      return result;
+    }
+    
+    // 정상적인 경우 객체를 반환
+    return data as MainProducts;
   },
 };

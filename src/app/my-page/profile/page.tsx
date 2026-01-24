@@ -94,7 +94,7 @@ export default function MyPageProfile() {
 
       await queryClient.invalidateQueries({ queryKey: [QUERY.USER] });
       alert("프로필이 수정되었습니다.");
-      router.push(ROUTE.MYPAGE);
+      window.location.href = `${ROUTE.MYPAGE}.html`;
     } catch (error: any) {
       console.error("프로필 수정 실패:", error);
       const errorMessage = error?.response?.data?.message || error?.message || "프로필 수정에 실패했습니다.";

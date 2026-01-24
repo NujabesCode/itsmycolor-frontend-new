@@ -24,7 +24,7 @@ export const ApplyView = () => {
           <button
             className="w-full bg-gray-900 text-white py-3 lg:py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200"
             onClick={() => {
-              router.push(ROUTE.MYPAGE_SELLER_APPLY);
+              window.location.href = `${ROUTE.MYPAGE_SELLER_APPLY}.html`;
             }}
           >
             입점 신청하기

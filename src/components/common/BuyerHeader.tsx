@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { StaticExportLink } from '@/utils/static-export-link';
 import {
   IoIosMenu,
   IoIosSearch,
@@ -104,7 +105,8 @@ export const BuyerHeader = () => {
 
   const onSearch = () => {
     if (search.trim()) {
-      router.push(`${ROUTE.SHOPPING}?search=${encodeURIComponent(search.trim())}`);
+      // 정적 export 모드에서는 .html 확장자 추가
+      router.push(`${ROUTE.SHOPPING}.html?search=${encodeURIComponent(search.trim())}`);
       setIsMobileSearchOpen(false);
     }
   };
@@ -243,12 +245,12 @@ export const BuyerHeader = () => {
           <ul className="flex items-center gap-6 px-4 py-3 whitespace-nowrap">
             {MENU_CATEGORIES.map((category) => (
               <li key={category.name} className="shrink-0">
-                <Link
+                <StaticExportLink
                   href={category.path || '#'}
                   className="text-sm font-medium hover:text-gray-600 transition-colors"
                 >
                   {category.name}
-                </Link>
+                </StaticExportLink>
               </li>
             ))}
           </ul>
@@ -293,7 +295,7 @@ export const BuyerHeader = () => {
                       }
                       onMouseLeave={() => setActiveCategory(null)}
                     >
-                      <Link
+                      <StaticExportLink
                         href={category.path || '#'}
                         className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-black transition-colors"
                       >
@@ -306,7 +308,7 @@ export const BuyerHeader = () => {
                             }`}
                           />
                         )}
-                      </Link>
+                      </StaticExportLink>
 
                     {/* Dropdown */}
                     {category.subItems && (
@@ -327,7 +329,7 @@ export const BuyerHeader = () => {
                           </h3>
                           <div className="grid grid-cols-2 gap-2">
                             {category.subItems.map((item) => (
-                              <Link
+                              <StaticExportLink
                                 key={item.name}
                                 href={item.path}
                                 className={`block px-4 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200 group ${
@@ -337,11 +339,11 @@ export const BuyerHeader = () => {
                                 <span className="text-sm font-medium group-hover:translate-x-1 inline-block transition-transform">
                                   {item.name}
                                 </span>
-                              </Link>
+                              </StaticExportLink>
                             ))}
                           </div>
                           <div className="mt-4 pt-4 border-t border-gray-100">
-                            <Link
+                            <StaticExportLink
                               href={category.path}
                               className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                             >
@@ -350,7 +352,7 @@ export const BuyerHeader = () => {
                                 size={14}
                                 className="-rotate-90"
                               />
-                            </Link>
+                            </StaticExportLink>
                           </div>
                         </div>
                       </div>
@@ -390,27 +392,27 @@ export const BuyerHeader = () => {
               {/* Right: 마이쇼핑, 로그인/회원가입, 아이콘 */}
               <div className="flex items-center gap-5 shrink-0">
                 {isLoggedIn ? (
-                  <Link
-                    href={ROUTE.MYPAGE}
-                    className="text-sm text-gray-700 hover:text-black transition-colors"
-                  >
-                    마이쇼핑
-                  </Link>
+                <StaticExportLink
+                  href={ROUTE.MYPAGE}
+                  className="text-sm text-gray-700 hover:text-black transition-colors"
+                >
+                  마이쇼핑
+                </StaticExportLink>
                 ) : null}
                 {!isLoggedIn ? (
                   <>
-                    <Link
+                    <StaticExportLink
                       href={ROUTE.SIGNIN}
                       className="text-sm text-gray-700 hover:text-black transition-colors"
                     >
                       로그인
-                    </Link>
-                    <Link
+                    </StaticExportLink>
+                    <StaticExportLink
                       href={ROUTE.SIGNUP}
                       className="text-sm text-gray-700 hover:text-black transition-colors"
                     >
                       회원가입
-                    </Link>
+                    </StaticExportLink>
                   </>
                 ) : (
                   <>
@@ -553,20 +555,20 @@ export const BuyerHeader = () => {
               <div className="p-4">
                 {!isLoggedIn ? (
                   <div className="flex gap-4 mb-6">
-                    <Link
+                    <StaticExportLink
                       href={ROUTE.SIGNIN}
                       className="flex-1 py-3 text-center border border-black text-sm font-medium"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       로그인
-                    </Link>
-                    <Link
+                    </StaticExportLink>
+                    <StaticExportLink
                       href={ROUTE.SIGNUP}
                       className="flex-1 py-3 text-center bg-black text-white text-sm font-medium"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       회원가입
-                    </Link>
+                    </StaticExportLink>
                   </div>
                 ) : (
                   <div className="mb-6">
@@ -632,13 +634,13 @@ export const BuyerHeader = () => {
                                       {item.name}
                                     </a>
                                   ) : (
-                                    <Link
+                                    <StaticExportLink
                                       href={item.path}
                                       className="block py-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                                       onClick={() => setIsMobileMenuOpen(false)}
                                     >
                                       {item.name}
-                                    </Link>
+                                    </StaticExportLink>
                                   )}
                                 </li>
                               );
@@ -656,13 +658,13 @@ export const BuyerHeader = () => {
                               바로가기
                             </a>
                           ) : (
-                            <Link
+                            <StaticExportLink
                               href={category.path!}
                               className="block py-1 text-sm text-gray-600 hover:text-gray-900 pl-4 transition-colors"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               바로가기
-                            </Link>
+                            </StaticExportLink>
                           )
                         )}
                       </div>

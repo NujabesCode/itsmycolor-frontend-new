@@ -30,7 +30,8 @@ export default function SellerLayout({
     // LG-005: 비로그인 상태에서 판매자 페이지 접근 시 로그인 페이지로 리다이렉트
     if (!token) {
       alert("로그인이 필요합니다.");
-      router.replace(`${ROUTE.SELLER_SIGNIN}?to=${btoa(pathname)}`);
+      // 정적 export 모드에서는 .html 확장자 추가
+      router.replace(`${ROUTE.SELLER_SIGNIN}.html?to=${btoa(pathname)}`);
       return;
     }
 
@@ -43,7 +44,8 @@ export default function SellerLayout({
         } else {
           alert("브랜드 관리자 권한이 없거나 아직 심사 중입니다.");
         }
-        router.replace(ROUTE.SELLER_SIGNIN);
+        // 정적 export 모드에서는 .html 확장자 추가
+        router.replace(`${ROUTE.SELLER_SIGNIN}.html`);
         return;
       }
       setIsChecking(false);

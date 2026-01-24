@@ -18,7 +18,7 @@ export const useLikeProduct = (productId: string) => {
 
   const handleLikeProduct = async () => {
     if (!user) {
-      router.push(ROUTE.SIGNIN);
+      window.location.href = `${ROUTE.SIGNIN}.html`;
       return;
     }
 

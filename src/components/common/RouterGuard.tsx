@@ -28,7 +28,8 @@ export const RouterGuard = () => {
     if (pathname.startsWith(ROUTE.ADMIN_MAIN) && !pathname.startsWith(ROUTE.ADMIN_SIGNIN) && !pathname.startsWith(ROUTE.ADMIN_SIGNUP)) {
       if (!token) {
         alert("로그인이 필요합니다.");
-        return router.replace(`${ROUTE.ADMIN_SIGNIN}?to=${btoa(to)}`);
+        // 정적 export 모드에서는 .html 확장자 추가
+        return router.replace(`${ROUTE.ADMIN_SIGNIN}.html?to=${btoa(to)}`);
       }
 
       if (user && user.role !== UserRole.SYSTEM_ADMIN) {
@@ -46,12 +47,14 @@ export const RouterGuard = () => {
     if (pathname.startsWith(ROUTE.SELLER_MAIN) && !pathname.startsWith(ROUTE.SELLER_SIGNUP) && !pathname.startsWith(ROUTE.SELLER_SIGNIN)) {
       if (!token) {
         alert("로그인이 필요합니다.");
-        return router.replace(`${ROUTE.SELLER_SIGNIN}?to=${btoa(to)}`);
+        // 정적 export 모드에서는 .html 확장자 추가
+        return router.replace(`${ROUTE.SELLER_SIGNIN}.html?to=${btoa(to)}`);
       }
 
       if (user && user.role !== UserRole.BRAND_ADMIN) {
         alert("브랜드 관리자 권한이 없거나 아직 심사 중입니다.");
-        return router.replace(`${ROUTE.SELLER_SIGNIN}?to=${btoa(to)}`);
+        // 정적 export 모드에서는 .html 확장자 추가
+        return router.replace(`${ROUTE.SELLER_SIGNIN}.html?to=${btoa(to)}`);
       }
     }
 
@@ -67,9 +70,11 @@ export const RouterGuard = () => {
         alert("로그인이 필요합니다.");
 
         if (pathname.startsWith(ROUTE.MYPAGE_SELLER_APPLY)) {
-          return router.replace(`${ROUTE.SELLER_SIGNIN}?to=${btoa(to)}`);
+          // 정적 export 모드에서는 .html 확장자 추가
+        return router.replace(`${ROUTE.SELLER_SIGNIN}.html?to=${btoa(to)}`);
         } else {
-          return router.replace(`${ROUTE.SIGNIN}?to=${btoa(to)}`);
+          // 정적 export 모드에서는 .html 확장자 추가
+          return router.replace(`${ROUTE.SIGNIN}.html?to=${btoa(to)}`);
         }
       }
     }

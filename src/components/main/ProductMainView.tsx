@@ -7,6 +7,7 @@ import { BodyType } from "@/serivces/user/type";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { StaticLink } from '@/components/common/StaticLink';
 import { useMediaQuery } from "@/hooks/common/useMediaQuery";
 
 // ColorSeason / BodyType 값을 그대로 표시하기 위해 매핑을 제거합니다.
@@ -70,10 +71,18 @@ const COLOR_SEASON_DESCRIPTIONS: Record<string, string> = {
 };
 
 export const ProductMainView = () => {
-  const { data: mainProducts } = useGetMainProducts();
+  const { data: mainProductsRaw, isLoading, error } = useGetMainProducts();
   const isPC = useMediaQuery("(min-width: 1024px)"); // Tailwind 'lg' breakpoint
   const router = useRouter();
   const pathname = usePathname();
+  
+  // 디버깅 로그
+  console.log('[ProductMainView] mainProductsRaw:', mainProductsRaw);
+  console.log('[ProductMainView] isLoading:', isLoading);
+  console.log('[ProductMainView] error:', error);
+
+  // 배열이 오는 경우를 처리 (백엔드가 객체를 반환해야 하는데 배열로 오는 경우 대비)
+  const mainProducts = Array.isArray(mainProductsRaw) ? {} : (mainProductsRaw || {});
 
   // 분리된 Key 배열
   const COLOR_KEYS = isPC ? COLOR_SEASON_KEYS_PC : COLOR_SEASON_KEYS_MOBILE;
@@ -81,7 +90,8 @@ export const ProductMainView = () => {
   // 공통 렌더 함수
   const renderColorSeasonItem = (key: string) => {
     const product = mainProducts?.[key as keyof typeof mainProducts] ?? null;
-    const imageSrc = product?.imageUrl;
+    // ProductResponseDto 또는 ProductListItem 모두 imageUrl 필드를 포함하므로 안전하게 접근
+    const imageSrc = product ? (product as any)?.imageUrl : null;
     const label = key;
     const description = COLOR_SEASON_DESCRIPTIONS[key] || '';
 
@@ -91,15 +101,19 @@ export const ProductMainView = () => {
 
     // 같은 페이지에서 쿼리 파라미터만 변경할 때는 스크롤 방지
     const handleClick = (e: React.MouseEvent) => {
-      if (pathname === ROUTE.SHOPPING) {
+      if (pathname === ROUTE.SHOPPING || pathname === `${ROUTE.SHOPPING}.html`) {
         e.preventDefault();
-        router.push(linkHref, { scroll: false });
+        // 정적 export 모드에서는 .html 확장자 추가
+        const transformedHref = linkHref.includes('?') 
+          ? `${linkHref.split('?')[0]}.html?${linkHref.split('?')[1]}`
+          : `${linkHref}.html`;
+        router.push(transformedHref, { scroll: false });
       }
     };
 
     return (
       <div key={key} className="space-y-2">
-        <Link
+        <StaticLink
           href={linkHref}
           onClick={handleClick}
           className="group relative overflow-hidden aspect-[3/4] bg-gray-100 block"
@@ -125,7 +139,7 @@ export const ProductMainView = () => {
               {label}
             </h3>
           </div>
-        </Link>
+        </StaticLink>
         {/* 설명 텍스트 */}
         {description && (
           <div className="text-sm md:text-base text-gray-600 leading-relaxed px-1" style={{ fontSize: '14px', color: 'var(--season_color_04)', lineHeight: '1.5' }}>
@@ -157,30 +171,38 @@ export const ProductMainView = () => {
 
 // 체형별 추천 컴포넌트
 export const BodyTypeView = () => {
-  const { data: mainProducts } = useGetMainProducts();
+  const { data: mainProductsRaw } = useGetMainProducts();
   const router = useRouter();
   const pathname = usePathname();
+
+  // 배열이 오는 경우를 처리 (백엔드가 객체를 반환해야 하는데 배열로 오는 경우 대비)
+  const mainProducts = Array.isArray(mainProductsRaw) ? {} : (mainProductsRaw || {});
 
   const BT_KEYS = BODY_TYPE_KEYS;
 
   const renderBodyTypeItem = (key: string) => {
     const product = mainProducts?.[key as keyof typeof mainProducts] ?? null;
-    const imageSrc = product?.imageUrl;
+    // ProductResponseDto 또는 ProductListItem 모두 imageUrl 필드를 포함하므로 안전하게 접근
+    const imageSrc = product ? (product as any)?.imageUrl : null;
     const label = BODY_TYPE_EN[key] ?? key;
     const description = BODY_TYPE_DESCRIPTIONS[key] || '';
 
     const linkHref = `${ROUTE.SHOPPING}?bodyType=${encodeURIComponent(key)}`;
 
     const handleClick = (e: React.MouseEvent) => {
-      if (pathname === ROUTE.SHOPPING) {
+      if (pathname === ROUTE.SHOPPING || pathname === `${ROUTE.SHOPPING}.html`) {
         e.preventDefault();
-        router.push(linkHref, { scroll: false });
+        // 정적 export 모드에서는 .html 확장자 추가
+        const transformedHref = linkHref.includes('?') 
+          ? `${linkHref.split('?')[0]}.html?${linkHref.split('?')[1]}`
+          : `${linkHref}.html`;
+        router.push(transformedHref, { scroll: false });
       }
     };
 
     return (
       <div key={key} className="space-y-2">
-        <Link
+        <StaticLink
           href={linkHref}
           onClick={handleClick}
           className="group relative overflow-hidden aspect-[3/4] bg-gray-100 block"
@@ -206,7 +228,7 @@ export const BodyTypeView = () => {
               {label}
             </h3>
           </div>
-        </Link>
+        </StaticLink>
         {/* 설명 텍스트 */}
         {description && (
           <div className="text-sm md:text-base text-gray-600 leading-relaxed px-1" style={{ fontSize: '14px', color: 'var(--season_color_04)', lineHeight: '1.5' }}>

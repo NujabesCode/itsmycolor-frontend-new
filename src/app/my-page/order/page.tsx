@@ -409,9 +409,7 @@ export default function MyPageOrder() {
 
                             <button
                               onClick={() =>
-                                router.push(
-                                  ROUTE.SHOPPING_PRODUCT_DETAIL(item.productId)
-                                )
+                                window.location.href = `${ROUTE.SHOPPING_PRODUCT_DETAIL(item.productId)}.html`
                               }
                               className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium"
                             >

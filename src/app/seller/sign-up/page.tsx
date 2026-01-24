@@ -63,7 +63,8 @@ function SignUpContent() {
       await authApi.register(email, password, passwordConfirm, name, phone.replace(/[^0-9]/g, ""), token);
 
       alert("회원가입에 성공했습니다. 다시 로그인 해주세요.");
-      router.replace(ROUTE.SELLER_SIGNIN);
+      // 정적 export 모드에서는 .html 확장자 추가
+      router.replace(`${ROUTE.SELLER_SIGNIN}.html`);
     } catch (error) {
       alert("회원가입에 실패했습니다.");
     } finally {

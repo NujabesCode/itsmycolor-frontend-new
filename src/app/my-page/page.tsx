@@ -60,7 +60,7 @@ export default function MyPage() {
   const onLogout = () => {
     logout();
     alert("로그아웃 되었습니다.");
-    router.push(ROUTE.MAIN);
+    window.location.href = '/';
   };
 
   const menuItems = [
@@ -129,7 +129,7 @@ export default function MyPage() {
 
               {/* UI-037: 프로필 수정 버튼 - 실제 프로필 수정 페이지로 이동 */}
               <button
-                onClick={() => router.push(ROUTE.MYPAGE_PROFILE)}
+                onClick={() => window.location.href = `${ROUTE.MYPAGE_PROFILE}.html`}
                 className="bg-white/20 backdrop-blur hover:bg-white/30 px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-white"
               >
                 <IoSettingsSharp size={20} />

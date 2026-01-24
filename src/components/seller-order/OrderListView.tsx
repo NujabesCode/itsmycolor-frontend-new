@@ -206,6 +206,7 @@ export function OrderListView({ orders, onSelectOrder }: OrderListViewProps) {
                     type="checkbox"
                     checked={orders && orders.length > 0 && selectedIds.length === orders.length}
                     onChange={handleSelectAll}
+                    className="w-4 h-4 accent-gray-900 cursor-pointer"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">주문 정보</th>
@@ -225,6 +226,7 @@ export function OrderListView({ orders, onSelectOrder }: OrderListViewProps) {
                         type="checkbox"
                         checked={selectedIds.includes(order.id)}
                         onChange={() => toggleSelect(order.id)}
+                        className="w-4 h-4 accent-gray-900 cursor-pointer"
                       />
                     </td>
                     <td className="px-6 py-4">

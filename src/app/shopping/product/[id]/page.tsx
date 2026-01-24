@@ -1,8 +1,5 @@
-'use client';
-
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import { ROUTE } from '@/configs/constant/route';
 import { IoChevronForward } from 'react-icons/io5';
 
@@ -11,15 +8,71 @@ import { ProductOptionView } from '@/components/shopping-product-detail/ProductO
 import { MobileFixedBar } from '@/components/shopping-product-detail/MobileFixedBar';
 import { RelatedProducts } from '@/components/shopping-product-detail/RelatedProducts';
 
-export function generateStaticParams() {
-  return [];
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.125.130.10:3000';
+    // 공개 상품 목록 API 사용
+    const allProductIds: string[] = [];
+    let page = 1;
+    let hasMore = true;
+    const maxPages = 50; // 최대 페이지 제한
+    
+    while (hasMore && page <= maxPages) {
+      try {
+        const response = await fetch(`${apiUrl}/products?page=${page}&limit=100`, {
+          cache: 'no-store',
+        });
+        
+        if (!response.ok) {
+          console.warn(`상품 목록 페이지 ${page}를 가져올 수 없습니다.`);
+          break;
+        }
+        
+        const data = await response.json();
+        const products = data.products || [];
+        
+        if (products.length === 0) {
+          hasMore = false;
+        } else {
+          products.forEach((product: { id: string }) => {
+            if (product.id) {
+              allProductIds.push(product.id);
+            }
+          });
+          page++;
+          // 마지막 페이지 확인
+          if (data.lastPage && page > data.lastPage) {
+            hasMore = false;
+          }
+        }
+      } catch (fetchError) {
+        console.warn(`페이지 ${page} 가져오기 실패:`, fetchError);
+        hasMore = false;
+      }
+    }
+    
+    console.log(`생성할 상품 페이지 수: ${allProductIds.length}`);
+    // 최소 1개 이상 반환 필요 (빈 배열 시 빌드 실패)
+    if (allProductIds.length === 0) {
+      return [{ id: "dummy" }];
+    }
+    return allProductIds.map((id) => ({ id }));
+  } catch (error) {
+    console.error('generateStaticParams 상품 에러:', error);
+    // 에러 발생 시 더미 ID 반환 (빈 배열 시 빌드 실패)
+    return [{ id: "dummy" }];
+  }
 }
 
-export const dynamicParams = true;
-
-export default function ShoppingProductDetail() {
-  const params = useParams();
-  const id = params.id as string;
+export default async function ShoppingProductDetail({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const id = (await params).id;
 
   return (
     <div className="min-h-screen bg-white">

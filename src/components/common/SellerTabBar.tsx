@@ -44,7 +44,7 @@ export const SellerTabBar = () => {
           href={item.path}
           className={`flex-1 py-3 text-lg font-semibold flex justify-center items-center ${
             pathname.includes(item.path)
-              ? "bg-blue-40 text-white-solid"
+              ? "bg-white text-gray-900 border-b-2 border-gray-900"
               : "bg-grey-91 text-blue-40"
           }`}
         >

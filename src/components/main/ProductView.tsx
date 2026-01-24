@@ -11,6 +11,7 @@ import { useGetUser } from '@/serivces/user/query';
 import { STORAGE } from '@/configs/constant/storage';
 import { BodyType } from '@/serivces/user/type';
 import { useQuery } from '@tanstack/react-query';
+import { StaticLink } from '@/components/common/StaticLink';
 
 // 퍼스널 컬러 시즌 한글 매핑
 const COLOR_SEASON_KR: Record<string, string> = {
@@ -95,7 +96,7 @@ export const ProductView = ({type}: {type: 'user' | 'recommend' | 'all' | 'new'}
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
         {products?.map((item, index) => (
-          <Link
+          <StaticLink
             key={index}
             className="group relative bg-white overflow-hidden"
             href={ROUTE.SHOPPING_PRODUCT_DETAIL(item.id)}
@@ -130,7 +131,7 @@ export const ProductView = ({type}: {type: 'user' | 'recommend' | 'all' | 'new'}
                 ₩{item.price.toLocaleString()}
               </p>
             </div>
-          </Link>
+          </StaticLink>
         ))}
       </div>
     );

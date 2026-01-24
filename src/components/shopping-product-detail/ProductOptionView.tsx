@@ -56,15 +56,28 @@ export const ProductOptionView = ({ id }: { id: string }) => {
   };
 
   const onBuy = () => {
-    if (!size) return alert('사이즈를 선택해주세요.');
+    if (!size) {
+      alert('사이즈를 선택해주세요.');
+      return;
+    }
 
-    router.push(
-      ROUTE.SHOPPING_ORDER({
-        productId: id,
-        size: size,
-        quantity: quantity,
-      })
-    );
+    if (!getToken()) {
+      alert('로그인이 필요합니다.');
+      // 정적 export 모드에서는 .html 확장자 추가
+      window.location.href = `${ROUTE.SIGNIN}.html`;
+      return;
+    }
+
+    // 정적 export 모드에서는 .html 확장자 추가
+    const orderUrl = ROUTE.SHOPPING_ORDER({
+      productId: id,
+      size: size,
+      quantity: quantity,
+    });
+    const orderUrlWithHtml = orderUrl.includes('?') 
+      ? `${orderUrl.split('?')[0]}.html?${orderUrl.split('?')[1]}`
+      : `${orderUrl}.html`;
+    window.location.href = orderUrlWithHtml;
   };
 
   return (
@@ -76,7 +89,7 @@ export const ProductOptionView = ({ id }: { id: string }) => {
             className="text-sm text-gray-600 mb-2 cursor-pointer hover:underline"
             onClick={() => {
               if (product?.brandInfo?.id) {
-                router.push(ROUTE.SHOPPING_BRAND_DETAIL(product.brandInfo.id));
+                window.location.href = `${ROUTE.SHOPPING_BRAND_DETAIL(product.brandInfo.id)}.html`;
               }
             }}
           >
@@ -151,7 +164,14 @@ export const ProductOptionView = ({ id }: { id: string }) => {
               </button>
               <input
                 type="number"
-                className="w-16 px-3 py-1 text-center border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-400"
+                className="w-16 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-400"
+                style={{ 
+                  paddingLeft: '0.5rem', 
+                  paddingRight: '0.5rem', 
+                  textAlign: 'center' as const,
+                  WebkitAppearance: 'textfield' as const,
+                  MozAppearance: 'textfield' as const
+                }}
                 defaultValue={1}
                 min={1}
                 value={quantity}
@@ -169,6 +189,16 @@ export const ProductOptionView = ({ id }: { id: string }) => {
                 +
               </button>
             </div>
+            <style jsx>{`
+              input[type="number"]::-webkit-inner-spin-button,
+              input[type="number"]::-webkit-outer-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+              }
+              input[type="number"] {
+                -moz-appearance: textfield;
+              }
+            `}</style>
           </div>
 
           {/* 총 상품 금액 */}
@@ -189,7 +219,9 @@ export const ProductOptionView = ({ id }: { id: string }) => {
               onClick={() => {
                 if (!getToken()) {
                   alert('로그인이 필요한 기능입니다.');
-                  return router.push(ROUTE.SIGNIN);
+                  // 정적 export 모드에서는 .html 확장자 추가
+                  window.location.href = `${ROUTE.SIGNIN}.html`;
+                  return;
                 }
 
                 setOpenTryOnModal(true);

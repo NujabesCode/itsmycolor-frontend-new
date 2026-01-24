@@ -16,6 +16,13 @@ export const OrderManageModal = ({
 }) => {
   const queryClient = useQueryClient();
 
+  // 디버깅: order 객체 확인
+  console.log('OrderManageModal - order:', order);
+  console.log('OrderManageModal - recipientName:', order?.recipientName);
+  console.log('OrderManageModal - recipientPhone:', order?.recipientPhone);
+  console.log('OrderManageModal - shippingAddress:', order?.shippingAddress);
+  console.log('OrderManageModal - zipCode:', order?.zipCode);
+
   const [editedStatus, setEditedStatus] = useState<OrderStatus>(order.status);
 
   const onEdit = async () => {
@@ -50,41 +57,41 @@ export const OrderManageModal = ({
         <div className="p-4">
           <div className="mb-4">
             <div className="font-semibold mb-2">주문번호</div>
-            <div className="text-[var(--color-grey-33)]">{order.id}</div>
+            <div className="text-[var(--color-grey-33)]">{order?.id || '-'}</div>
           </div>
 
           <div className="mb-4">
             <div className="font-semibold mb-2">주문일시</div>
             <div className="text-[var(--color-grey-33)]">
-              {formatDate(order.createdAt)}
+              {order?.createdAt ? formatDate(order.createdAt) : '-'}
             </div>
           </div>
 
           <div className="mb-4">
             <div className="font-semibold mb-2">고객명</div>
             <div className="text-[var(--color-grey-33)]">
-              {order.recipientName}
+              {order?.recipientName || '-'}
             </div>
           </div>
 
           <div className="mb-4">
             <div className="font-semibold mb-2">연락처</div>
             <div className="text-[var(--color-grey-33)]">
-              {order.recipientPhone}
+              {order?.recipientPhone || '-'}
             </div>
           </div>
 
           <div className="mb-4">
             <div className="font-semibold mb-2">주소</div>
             <div className="text-[var(--color-grey-33)]">
-              ({order.zipCode}) {order.shippingAddress} {order.detailAddress}
+              {order?.zipCode ? `(${order.zipCode}) ` : ''}{order?.shippingAddress || ''} {order?.detailAddress || ''}
             </div>
           </div>
 
           <div className="mb-4">
             <div className="font-semibold mb-2">배송요청사항</div>
             <div className="text-[var(--color-grey-33)]">
-              {order.customDeliveryRequest}
+              {order?.customDeliveryRequest || '-'}
             </div>
           </div>
 
@@ -92,34 +99,38 @@ export const OrderManageModal = ({
             <div className="font-semibold mb-2">상품</div>
             <div className="space-y-2">
               {/* OM-012: 부분 취소/반품 표시 */}
-              {order.orderItems.map((item, idx) => (
-                <div key={idx} className="text-[var(--color-grey-33)] border-b border-gray-100 pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium">{item.productName}</p>
-                      <p className="text-sm text-gray-500">
-                        {item.size} / 수량 {item.quantity}개 / {item.price.toLocaleString()}원
-                      </p>
+              {order?.orderItems && Array.isArray(order.orderItems) && order.orderItems.length > 0 ? (
+                order.orderItems.map((item, idx) => (
+                  <div key={idx} className="text-[var(--color-grey-33)] border-b border-gray-100 pb-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{item?.productName || '-'}</p>
+                        <p className="text-sm text-gray-500">
+                          {item?.size || '-'} / 수량 {item?.quantity || 0}개 / {(item?.price || 0).toLocaleString()}원
+                        </p>
+                      </div>
+                      {/* 부분 취소/반품 표시는 OrderItem에 상태 필드가 필요하지만, 현재는 주문 상태로 표시 */}
                     </div>
-                    {/* 부분 취소/반품 표시는 OrderItem에 상태 필드가 필요하지만, 현재는 주문 상태로 표시 */}
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-[var(--color-grey-33)]">상품 정보가 없습니다.</div>
+              )}
             </div>
           </div>
 
           <div className="mb-4">
             <div className="font-semibold mb-2">결제 정보</div>
             <div className="text-[var(--color-grey-33)] space-y-1">
-              <p>상품 금액: {order.productAmount.toLocaleString()}원</p>
-              <p>할인 금액: {order.discountAmount.toLocaleString()}원</p>
-              <p>배송비: {order.shippingFee.toLocaleString()}원</p>
-              <p className="font-semibold text-lg">총 결제 금액: {order.totalAmount.toLocaleString()}원</p>
+              <p>상품 금액: {(order?.productAmount || 0).toLocaleString()}원</p>
+              <p>할인 금액: {(order?.discountAmount || 0).toLocaleString()}원</p>
+              <p>배송비: {(order?.shippingFee || 0).toLocaleString()}원</p>
+              <p className="font-semibold text-lg">총 결제 금액: {(order?.totalAmount || 0).toLocaleString()}원</p>
             </div>
           </div>
 
           {/* OM-006: 배송 정보 */}
-          {order.deliveryCompany && order.deliveryTrackingNumber && (
+          {order?.deliveryCompany && order?.deliveryTrackingNumber && (
             <div className="mb-4">
               <div className="font-semibold mb-2">배송 정보</div>
               <div className="text-[var(--color-grey-33)]">
@@ -133,7 +144,7 @@ export const OrderManageModal = ({
           <div className="mb-4">
             <div className="font-semibold mb-2">주문 상태</div>
             <div className="text-[var(--color-grey-33)]">
-              {order.status}
+              {order?.status || '-'}
             </div>
           </div>
 

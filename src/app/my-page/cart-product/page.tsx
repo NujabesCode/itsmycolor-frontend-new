@@ -29,13 +29,15 @@ export default function CartProduct() {
   };
 
   const onBuy = (product: ProductForCart) => {
-    router.push(
-      ROUTE.SHOPPING_ORDER({
-        productId: product.id,
-        size: product.size,
-        quantity: product.quantity,
-      })
-    );
+    const orderUrl = ROUTE.SHOPPING_ORDER({
+      productId: product.id,
+      size: product.size,
+      quantity: product.quantity,
+    });
+    const orderUrlWithHtml = orderUrl.includes('?') 
+      ? `${orderUrl.split('?')[0]}.html?${orderUrl.split('?')[1]}`
+      : `${orderUrl}.html`;
+    window.location.href = orderUrlWithHtml;
   };
 
   if (cartProducts.length === 0) {

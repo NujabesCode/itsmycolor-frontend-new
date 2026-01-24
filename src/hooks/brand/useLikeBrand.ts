@@ -18,7 +18,7 @@ export const useLikeBrand = (brandId: string) => {
 
   const handleLikeBrand = async () => {
     if (!user) {
-      router.push(ROUTE.SIGNIN);
+      window.location.href = `${ROUTE.SIGNIN}.html`;
       return;
     }
 

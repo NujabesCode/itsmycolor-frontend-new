@@ -37,7 +37,8 @@ export const QnaView = ({ product }: { product: Product }) => {
           onClick={() => {
             if (!getToken()) {
               alert("로그인이 필요한 기능입니다.");
-              return router.push(ROUTE.SIGNIN);
+              window.location.href = `${ROUTE.SIGNIN}.html`;
+              return;
             }
             setIsModalOpen(true);
           }}

@@ -582,7 +582,7 @@ export const Result = ({
           className="w-[200px] bg-grey-20 text-white px-8 py-4 rounded-full font-semibold 
                    hover:bg-grey-30 transition-all duration-300 text-base md:text-lg
                    shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-          onClick={() => router.push(ROUTE.MYPAGE)}
+          onClick={() => window.location.href = `${ROUTE.MYPAGE}.html`}
         >
           돌아가기
         </button>

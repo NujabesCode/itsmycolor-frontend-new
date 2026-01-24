@@ -3,9 +3,9 @@
 import { ROUTE } from '@/configs/constant/route';
 import { ProductListItem } from '@/serivces/product/type';
 import Image from 'next/image';
-import Link from 'next/link';
 import { IoHeart, IoHeartOutline } from 'react-icons/io5';
 import { useLikeProduct } from '@/hooks/product/useLikeProduct';
+import { StaticLink } from '@/components/common/StaticLink';
 
 export const ProductListItemView = ({
   product,
@@ -46,7 +46,7 @@ export const ProductListItemView = ({
   };
 
   return (
-    <Link
+    <StaticLink
       href={ROUTE.SHOPPING_PRODUCT_DETAIL(product.id)}
       className="group block bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-200 overflow-hidden"
     >
@@ -126,6 +126,6 @@ export const ProductListItemView = ({
           </div>
         </div>
       </div>
-    </Link>
+    </StaticLink>
   );
 };

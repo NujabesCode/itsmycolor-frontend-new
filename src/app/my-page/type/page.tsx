@@ -279,7 +279,7 @@ export default function MyPageType() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => router.push(ROUTE.MYPAGE)}
+                onClick={() => window.location.href = `${ROUTE.MYPAGE}.html`}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <IoArrowBack size={20} />

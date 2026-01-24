@@ -88,7 +88,7 @@ export const Step4 = ({ movePrev, moveNext }: { movePrev: () => void; moveNext: 
         <div className="grid grid-cols-4 gap-4">
           {['A라인', 'H라인', 'X라인', 'O라인', '일자핏', '오버사이즈', '크롭', '와이드'].map((item) => (
             <label key={item} className="flex items-center gap-2 text-gray-700">
-              <input type="checkbox" className="accent-gray-900" />
+              <input type="checkbox" className="w-4 h-4 accent-gray-900 cursor-pointer" />
               <span>{item}</span>
             </label>
           ))}
@@ -103,7 +103,7 @@ export const Step4 = ({ movePrev, moveNext }: { movePrev: () => void; moveNext: 
           {['셔링', '프릴', '리본', '플리츠', '크롭', '단추', '색상', '드레이프', '레이스', '자수', '비즈'].map(
             (item) => (
               <label key={item} className="flex items-center gap-2 text-gray-700">
-                <input type="checkbox" className="accent-gray-900" />
+                <input type="checkbox" className="w-4 h-4 accent-gray-900 cursor-pointer" />
                 <span>{item}</span>
               </label>
             )

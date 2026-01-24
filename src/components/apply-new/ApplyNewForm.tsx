@@ -99,7 +99,7 @@ export default function ApplyNewForm() {
       alert(
         '신청이 완료되었습니다.\n담당자가 검토 후 영업일 기준 3-5일 내 이메일로 안내드립니다.'
       );
-      router.push(ROUTE.MAIN);
+      window.location.href = '/';
     } catch (error) {
       alert('오류가 발생했습니다. 다시 시도해주세요.');
     }

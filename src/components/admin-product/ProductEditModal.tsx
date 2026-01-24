@@ -100,7 +100,7 @@ export const ProductEditModal = ({
             <button
               className="w-fit px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-500 transition-colors"
               onClick={() =>
-                router.push(ROUTE.SHOPPING_PRODUCT_DETAIL(product.id))
+                window.location.href = `${ROUTE.SHOPPING_PRODUCT_DETAIL(product.id)}.html`
               }
             >
               상품 상세 페이지 보러가기

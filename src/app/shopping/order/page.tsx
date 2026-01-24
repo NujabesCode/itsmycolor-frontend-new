@@ -55,6 +55,7 @@ export default function ShoppingOrder() {
   const { requestPayment } = useTossWidget(finalTotalAmount);
 
   const onPayment = async () => {
+    console.log('결제하기 버튼 클릭됨', { paymentMethod, finalTotalAmount });
     if (!product) return alert('상품을 찾을 수 없습니다.');
     if (!shippingForm.name) return alert('이름을 입력해주세요.');
     if (
@@ -103,14 +104,17 @@ export default function ShoppingOrder() {
           couponId: selectedCouponId ? selectedCouponId : undefined,
         });
 
+        console.log('결제 요청 시작', { orderId: order.id });
         await requestPayment(
           order.id,
           `${product.name} ${size} ${quantity}개 주문 건`,
           shippingForm.name,
           shippingForm.phone.replace(/[^0-9]/g, '')
         );
-      } catch (error) {
-        console.error(error);
+        console.log('결제 요청 완료');
+      } catch (error: any) {
+        console.error('결제 에러:', error);
+        alert(error?.message || '결제 중 오류가 발생했습니다. 다시 시도해주세요.');
       }
     }
 

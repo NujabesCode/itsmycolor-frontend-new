@@ -1,0 +1,12 @@
+﻿
+> itsmycolor-frontend@0.1.0 build
+> NODE_OPTIONS='--max-old-space-size=2048' npx next build
+
+npm : 'NODE_OPTIONS'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는
+위치 C:\Users\Python\AppData\Local\Temp\ps-script-b573432c-029b-48e6-982d-133b50eeb926.ps1:79 문자:128
++ ... :NODE_OPTIONS="--max-old-space-size=2048"; npm run build 2>&1 | Out-F ...
++                                                ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ('NODE_OPTIONS'은...할 수 있는 프로그램, 또는:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+배치 파일이 아닙니다.

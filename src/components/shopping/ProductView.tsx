@@ -3,7 +3,7 @@
 import { ROUTE } from '@/configs/constant/route';
 import { ProductListItem } from '@/serivces/product/type';
 import Image from 'next/image';
-import Link from 'next/link';
+import { StaticLink } from '@/components/common/StaticLink';
 
 export const ProductView = ({ product }: { product: ProductListItem }) => {
 
@@ -17,7 +17,7 @@ export const ProductView = ({ product }: { product: ProductListItem }) => {
   };
 
   return (
-    <Link
+    <StaticLink
       href={ROUTE.SHOPPING_PRODUCT_DETAIL(product.id)}
       className="group block h-full flex flex-col w-full"
     >
@@ -83,6 +83,6 @@ export const ProductView = ({ product }: { product: ProductListItem }) => {
           </span>
         </div>
       </div>
-    </Link>
+    </StaticLink>
   );
 };
