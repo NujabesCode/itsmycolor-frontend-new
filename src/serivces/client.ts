@@ -65,8 +65,11 @@ const getRuntimeApiUrl = () => {
   return correctUrl;
 };
 
+// 항상 올바른 API URL 사용 (api.itsmycolorshop.com 완전 차단)
+const FORCE_API_URL = "http://13.125.130.10:3000";
+
 export const axiosInstance = axios.create({
-  baseURL: getRuntimeApiUrl(),
+  baseURL: FORCE_API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -74,57 +77,39 @@ export const axiosInstance = axios.create({
 
 // axios instance의 baseURL을 런타임에 강제로 설정 (빌드 시점 값 무시)
 if (typeof window !== 'undefined') {
-  const correctUrl = getRuntimeApiUrl();
-  axiosInstance.defaults.baseURL = correctUrl;
-  console.log('[axiosInstance] baseURL 강제 설정:', correctUrl);
+  axiosInstance.defaults.baseURL = FORCE_API_URL;
+  console.log('[axiosInstance] baseURL 강제 설정:', FORCE_API_URL);
 }
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가 - 강제로 올바른 URL로 변경
+    // 항상 올바른 API URL 사용 (로컬 개발 환경 제외)
     const correctApiUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? `http://${window.location.hostname}:3000`
-      : "http://13.125.130.10:3000";
+      : FORCE_API_URL;
     
-    // baseURL을 항상 올바른 URL로 강제 설정 (빌드 시점에 잘못된 값이 포함되어 있어도 런타임에 수정)
-    // api.itsmycolorshop.com이 포함되어 있으면 무조건 변경
-    if (!config.baseURL || config.baseURL.includes('api.itsmycolorshop.com') || config.baseURL !== correctApiUrl) {
-      if (config.baseURL && (config.baseURL.includes('api.itsmycolorshop.com') || config.baseURL !== correctApiUrl)) {
-        console.warn('[API Request] 잘못된 baseURL 감지 - 올바른 URL로 강제 변경:', config.baseURL, '->', correctApiUrl);
+    // baseURL을 항상 올바른 URL로 강제 설정
+    if (config.baseURL !== correctApiUrl) {
+      if (config.baseURL && config.baseURL.includes('api.itsmycolorshop.com')) {
+        console.error('[API Request] api.itsmycolorshop.com 차단 - 올바른 URL로 강제 변경:', config.baseURL, '->', correctApiUrl);
       }
       config.baseURL = correctApiUrl;
     }
     
-    // url이 전체 URL로 시작하는 경우도 확인
-    if (config.url && (config.url.startsWith('https://api.itsmycolorshop.com') || config.url.startsWith('http://api.itsmycolorshop.com'))) {
-      console.warn('[API Request] url에 api.itsmycolorshop.com 포함 - 경로만 추출');
-      const urlPath = config.url.replace(/https?:\/\/api\.itsmycolorshop\.com/, '');
-      config.url = urlPath;
-      config.baseURL = correctApiUrl;
-    }
-    
-    // url이 전체 URL로 시작하는 경우 (http:// 또는 https://)
+    // url이 전체 URL로 시작하는 경우
     if (config.url && (config.url.startsWith('http://') || config.url.startsWith('https://'))) {
-      // api.itsmycolorshop.com이 포함되어 있으면 올바른 URL로 변경
+      // api.itsmycolorshop.com이 포함되어 있으면 무조건 차단하고 올바른 URL로 변경
       if (config.url.includes('api.itsmycolorshop.com')) {
-        console.warn('[API Request] url에 api.itsmycolorshop.com 포함 - 올바른 URL로 강제 변경');
+        console.error('[API Request] url에 api.itsmycolorshop.com 포함 - 차단하고 올바른 URL로 변경');
         const urlPath = config.url.replace(/https?:\/\/api\.itsmycolorshop\.com/, '');
         config.url = urlPath;
         config.baseURL = correctApiUrl;
-      } else {
-        // 다른 전체 URL인 경우도 baseURL 무시하고 사용
-        config.baseURL = '';
-      }
-    } else {
-      // 상대 경로인 경우 baseURL과 결합
-      const fullUrl = (config.baseURL || correctApiUrl) + (config.url || '');
-      
-      // 전체 URL에서 api.itsmycolorshop.com을 올바른 URL로 변경
-      if (fullUrl.includes('api.itsmycolorshop.com')) {
-        console.warn('[API Request] 전체 URL에 api.itsmycolorshop.com 포함 - 올바른 URL로 강제 변경');
-        const urlPath = config.url || '';
-        config.baseURL = correctApiUrl;
+      } else if (!config.url.includes('13.125.130.10') && !config.url.includes('localhost')) {
+        // 다른 잘못된 URL인 경우도 차단
+        console.error('[API Request] 잘못된 URL 감지 - 올바른 URL로 변경:', config.url);
+        const urlPath = config.url.replace(/https?:\/\/[^\/]+/, '');
         config.url = urlPath;
+        config.baseURL = correctApiUrl;
       }
     }
     
