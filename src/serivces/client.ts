@@ -119,10 +119,13 @@ axiosInstance.interceptors.request.use(
       config.baseURL = correctApiUrl;
     }
     
-    const localToken = localStorage.getItem(STORAGE.TOKEN);
-    const sessionToken = sessionStorage.getItem(STORAGE.TOKEN);
-
-    const token = localToken || sessionToken;
+    // 서버 사이드에서는 localStorage/sessionStorage 접근 불가
+    let token = null;
+    if (typeof window !== 'undefined') {
+      const localToken = localStorage.getItem(STORAGE.TOKEN);
+      const sessionToken = sessionStorage.getItem(STORAGE.TOKEN);
+      token = localToken || sessionToken;
+    }
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

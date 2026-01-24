@@ -37,6 +37,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* 이미지 도메인에 미리 연결하여 로딩 속도 개선 */}
+        <link rel="preconnect" href="https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com" />
+        <link rel="dns-prefetch" href="https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com" />
+        {/* API 서버에 미리 연결 */}
+        <link rel="preconnect" href="http://13.125.130.10:3000" />
+        <link rel="dns-prefetch" href="http://13.125.130.10:3000" />
+      </head>
       <body className={`${notoSansKR.className} ${notoSansKR.variable}`} suppressHydrationWarning>
         <ReactQueryProvider>
           <ProductStoreProvider>
