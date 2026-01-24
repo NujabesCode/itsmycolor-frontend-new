@@ -34,11 +34,21 @@ export default function FindPasswordPage() {
 
     setIsLoading(true);
     try {
-      await emailApi.resetPassword(token, password);
+      console.log('[프론트엔드] 비밀번호 재설정 API 호출 시작:', { tokenLength: token.length, tokenPrefix: token.substring(0, 20) });
+      const response = await emailApi.resetPassword(token, password);
+      console.log('[프론트엔드] 비밀번호 재설정 성공:', response);
       alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인 해주세요.");
       router.replace(ROUTE.SIGNIN);
-    } catch (error) {
-      alert("비밀번호 변경에 실패했습니다. 링크가 만료되었거나 유효하지 않습니다.");
+    } catch (error: any) {
+      console.error('[프론트엔드] 비밀번호 재설정 에러:', error);
+      console.error('[프론트엔드] 에러 상세:', {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+        config: error?.config,
+      });
+      const errorMessage = error?.response?.data?.message || error?.message || "비밀번호 변경에 실패했습니다. 링크가 만료되었거나 유효하지 않습니다.";
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
