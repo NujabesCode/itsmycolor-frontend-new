@@ -87,13 +87,15 @@ export const ProductMainView = () => {
   // 분리된 Key 배열
   const COLOR_KEYS = isPC ? COLOR_SEASON_KEYS_PC : COLOR_SEASON_KEYS_MOBILE;
 
-  // 공통 렌더 함수
-  const renderColorSeasonItem = (key: string) => {
+  // 공통 렌더 함수 - index를 받아서 첫 4개 이미지에 priority 적용
+  const renderColorSeasonItem = (key: string, index: number) => {
     const product = mainProducts?.[key as keyof typeof mainProducts] ?? null;
     // ProductResponseDto 또는 ProductListItem 모두 imageUrl 필드를 포함하므로 안전하게 접근
     const imageSrc = product ? (product as any)?.imageUrl : null;
     const label = key;
     const description = COLOR_SEASON_DESCRIPTIONS[key] || '';
+    // 첫 4개 이미지는 priority 로딩 (above the fold)
+    const isPriority = index < 4;
 
     const linkHref = `${ROUTE.SHOPPING}?colorSeasons=${encodeURIComponent(
       JSON.stringify([key])
@@ -123,7 +125,9 @@ export const ProductMainView = () => {
               src={imageSrc}
               alt={label}
               fill
-              quality={100}
+              quality={85}
+              priority={isPriority}
+              loading={isPriority ? undefined : "lazy"}
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="(max-width: 768px) 50vw, 25vw"
             />
@@ -157,12 +161,26 @@ export const ProductMainView = () => {
     );
   };
 
+  // 스켈레톤 로딩 UI
+  const renderSkeleton = () => (
+    <div className="space-y-2 animate-pulse">
+      <div className="aspect-[3/4] bg-gray-200 rounded-lg" />
+      <div className="space-y-2 px-1">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-gray-200 rounded w-full" />
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-[1200px] mx-auto">
       {/* Color Season Grid - attrangs 스타일 */}
       <div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-          {COLOR_KEYS.map((key) => renderColorSeasonItem(key))}
+          {isLoading
+            ? Array(8).fill(0).map((_, i) => <div key={i}>{renderSkeleton()}</div>)
+            : COLOR_KEYS.map((key, index) => renderColorSeasonItem(key, index))
+          }
         </div>
       </div>
     </div>
@@ -180,12 +198,14 @@ export const BodyTypeView = () => {
 
   const BT_KEYS = BODY_TYPE_KEYS;
 
-  const renderBodyTypeItem = (key: string) => {
+  const renderBodyTypeItem = (key: string, index: number) => {
     const product = mainProducts?.[key as keyof typeof mainProducts] ?? null;
     // ProductResponseDto 또는 ProductListItem 모두 imageUrl 필드를 포함하므로 안전하게 접근
     const imageSrc = product ? (product as any)?.imageUrl : null;
     const label = BODY_TYPE_EN[key] ?? key;
     const description = BODY_TYPE_DESCRIPTIONS[key] || '';
+    // 첫 3개 이미지는 priority 로딩
+    const isPriority = index < 3;
 
     const linkHref = `${ROUTE.SHOPPING}?bodyType=${encodeURIComponent(key)}`;
 
@@ -212,7 +232,9 @@ export const BodyTypeView = () => {
               src={imageSrc}
               alt={label}
               fill
-              quality={100}
+              quality={85}
+              priority={isPriority}
+              loading={isPriority ? undefined : "lazy"}
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="(max-width: 1024px) 50vw, 33vw"
             />
@@ -249,7 +271,7 @@ export const BodyTypeView = () => {
   return (
     <div className="max-w-[1200px] mx-auto">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
-        {BT_KEYS.map((key) => renderBodyTypeItem(key))}
+        {BT_KEYS.map((key, index) => renderBodyTypeItem(key, index))}
       </div>
     </div>
   );
