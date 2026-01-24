@@ -1,29 +1,18 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTE } from "@/configs/constant/route";
 import { emailApi } from "@/serivces/email/request";
 import Image from "next/image";
 import { IoLockClosedOutline } from "react-icons/io5";
 
-function FindPasswordPageContent() {
+export default function FindPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenParam = searchParams.get("token");
-  // Next.js의 useSearchParams는 이미 디코딩된 값을 반환하지만,
-  // 이중 인코딩된 경우를 대비해 디코딩 시도
-  let token = tokenParam;
-  if (tokenParam) {
-    try {
-      // 이미 디코딩된 경우를 확인하기 위해 인코딩 후 비교
-      const decoded = decodeURIComponent(tokenParam);
-      token = decoded;
-    } catch (e) {
-      // 디코딩 실패 시 원본 사용
-      token = tokenParam;
-    }
-  }
+  // 토큰 앞뒤 공백 제거
+  const token = tokenParam?.trim() || null;
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -47,19 +36,16 @@ function FindPasswordPageContent() {
 
     setIsLoading(true);
     try {
-      console.log("비밀번호 재설정 시도:", { 
-        token: token ? (token.length > 20 ? token.substring(0, 20) + "..." : token) : "없음",
-        tokenLength: token?.length,
-        passwordLength: password.length 
+      console.log('[프론트엔드] 비밀번호 재설정 요청:', {
+        tokenLength: token.length,
+        tokenPrefix: token.substring(0, 20),
       });
-      if (!token) {
-        throw new Error("토큰이 없습니다.");
-      }
+      
       await emailApi.resetPassword(token, password);
       alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인 해주세요.");
       router.replace(ROUTE.SIGNIN);
     } catch (error: any) {
-      console.error("비밀번호 재설정 에러:", error);
+      console.error('[프론트엔드] 비밀번호 재설정 에러:', error);
       const errorMessage = error?.response?.data?.message || error?.message || "비밀번호 변경에 실패했습니다. 링크가 만료되었거나 유효하지 않습니다.";
       alert(errorMessage);
     } finally {
@@ -130,13 +116,5 @@ function FindPasswordPageContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function FindPasswordPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">로딩 중...</div>}>
-      <FindPasswordPageContent />
-    </Suspense>
   );
 }
