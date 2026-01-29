@@ -17,9 +17,21 @@ export const adminApi = {
   }): Promise<{ customers: Customer[]; lastPage: number }> => {
     const response = await axiosInstance.get("/admin/customers", { params });
 
+    const firstCustomer = response.data.data?.[0];
+    console.log('========================================');
+    console.log('[adminApi.getCustomerList] 첫 번째 고객 전체 데이터:');
+    console.log(JSON.stringify(firstCustomer, null, 2));
+    console.log('========================================');
+    console.log('[adminApi.getCustomerList] 첫 번째 고객 키 목록:', firstCustomer ? Object.keys(firstCustomer) : []);
+    console.log('[adminApi.getCustomerList] bodyType:', firstCustomer?.bodyType);
+    console.log('[adminApi.getCustomerList] colorSeason:', firstCustomer?.colorSeason);
+    console.log('[adminApi.getCustomerList] lastVisitDate:', firstCustomer?.lastVisitDate);
+    console.log('[adminApi.getCustomerList] purchaseInfo:', firstCustomer?.purchaseInfo);
+    console.log('========================================');
+
     return {
-      customers: response.data.data,
-      lastPage: response.data.lastPage,
+      customers: response.data.data || [],
+      lastPage: response.data.lastPage || 1,
     };
   },
   getAccountList: async (params: {
@@ -98,8 +110,12 @@ export const adminApi = {
   putSettlementComplete: async (settlementId: string) => {
     return await axiosInstance.put(`/settlements/${settlementId}/complete`);
   },
-  getDashboard: async (): Promise<Dashboard> => {
-    const response = await axiosInstance.get("/admin/dashboard");
+  getDashboard: async (startDate?: string, endDate?: string): Promise<Dashboard> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    const queryString = params.toString();
+    const response = await axiosInstance.get(`/admin/dashboard${queryString ? `?${queryString}` : ''}`);
     return response.data;
   },
   postBrandConnectUrl: async (brandId: string) => {

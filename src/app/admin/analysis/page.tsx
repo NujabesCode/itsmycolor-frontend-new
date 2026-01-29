@@ -47,18 +47,35 @@ const downloadExcel = (data: any, filename: string) => {
 };
 
 export default function AdminAnalysis() {
-  const { data: dashboard } = useGetDashboard();
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  const [appliedStartDate, setAppliedStartDate] = useState<string>('');
+  const [appliedEndDate, setAppliedEndDate] = useState<string>('');
+  
+  const { data: dashboard } = useGetDashboard(
+    appliedStartDate || undefined,
+    appliedEndDate || undefined
+  );
 
   // 날짜 필터링된 데이터 계산
   const filteredData = useMemo(() => {
     if (!dashboard) return null;
-    
-    // 실제로는 백엔드 API에 날짜 필터를 전달해야 하지만,
-    // 현재는 프론트엔드에서 필터링 (백엔드 API 개선 필요)
     return dashboard;
-  }, [dashboard, startDate, endDate]);
+  }, [dashboard]);
+  
+  // 검색 버튼 핸들러
+  const handleSearch = () => {
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+  };
+  
+  // 초기화 버튼 핸들러
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate('');
+    setAppliedStartDate('');
+    setAppliedEndDate('');
+  };
 
   if (!dashboard || !filteredData) {
     return (
@@ -418,10 +435,13 @@ export default function AdminAnalysis() {
               />
             </div>
             <button
-              onClick={() => {
-                setStartDate('');
-                setEndDate('');
-              }}
+              onClick={handleSearch}
+              className="mt-6 px-6 py-2 bg-azure-39 text-white rounded-lg hover:bg-azure-50 transition-colors font-medium"
+            >
+              검색
+            </button>
+            <button
+              onClick={handleReset}
               className="mt-6 px-4 py-2 bg-grey-91 text-grey-20 rounded-lg hover:bg-grey-80 transition-colors"
             >
               초기화
