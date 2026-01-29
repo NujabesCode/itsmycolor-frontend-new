@@ -16,10 +16,11 @@ export interface Customer {
   name: string;
   phone: string;
   email: string;
-  bodyType: BodyType;
-  colorSeason: ColorSeason;
-  purchaseInfo: {
+  bodyType: BodyType | null | undefined;
+  colorSeason: ColorSeason | null | undefined;
+  purchaseInfo?: {
     totalAmount: number;
+    lastPurchaseDate?: string | Date | null;
   } | null;
   createdAt: string;
   updatedAt: string;
@@ -65,6 +66,7 @@ export interface Dashboard {
     purchaseCustomers: number;
     vipCustomers: number;
   };
+  totalOrders: number;
   monthlySales: Array<{
     month: string;
     amount: number;

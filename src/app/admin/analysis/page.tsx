@@ -73,7 +73,7 @@ export default function AdminAnalysis() {
 
   // 통계 계산
   const totalSales = filteredData.monthlySales.reduce((sum, item) => sum + item.amount, 0);
-  const totalOrders = filteredData.monthlySales.length; // 실제로는 주문 건수를 별도로 계산해야 함
+  const totalOrders = filteredData.totalOrders || 0; // 백엔드에서 제공하는 총 주문 건수 사용
   const avgOrderValue = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
   
   // 전월 대비 성장률 계산
