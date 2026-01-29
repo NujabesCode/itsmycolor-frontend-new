@@ -42,7 +42,7 @@ export default function AdminOrder() {
   });
 
   // OC-004: 주문 상세 조회
-  const { data: orderDetail } = useQuery({
+  const { data: orderDetail, isLoading: isLoadingDetail, error: orderDetailError } = useQuery({
     queryKey: ['order-detail', selectedOrder?.id],
     queryFn: async () => {
       if (!selectedOrder?.id) return null;
@@ -377,11 +377,35 @@ export default function AdminOrder() {
       </div>
 
       {/* OC-004: 주문 상세 모달 */}
-      {selectedOrder && orderDetail && (
+      {selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-grey-20">주문 상세</h2>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="text-grey-46 hover:text-grey-20 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            {isLoadingDetail ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-grey-71">데이터를 불러오는 중...</div>
+              </div>
+            ) : orderDetailError ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="text-red-500 mb-2">데이터를 불러오는 중 오류가 발생했습니다.</div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="px-4 py-2 bg-grey-91 text-grey-20 rounded-lg hover:bg-grey-80 transition-colors"
+                >
+                  닫기
+                </button>
+              </div>
+            ) : orderDetail ? (
+              <>
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="text-grey-46 hover:text-grey-20"
@@ -483,6 +507,8 @@ export default function AdminOrder() {
                 </div>
               )}
             </div>
+              </>
+            )}
           </div>
         </div>
       )}
