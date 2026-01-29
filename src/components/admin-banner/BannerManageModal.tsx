@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Banner, BannerVisibility } from "@/serivces/admin/type";
 import { adminApi } from "@/serivces/admin/request";
+import { fileApi } from "@/serivces/file/request";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY } from "@/configs/constant/query";
 import Image from "next/image";
@@ -22,6 +23,12 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
   const [linkUrl, setLinkUrl] = useState("");
   const [pcImagePreview, setPcImagePreview] = useState<string>("");
   const [mobileImagePreview, setMobileImagePreview] = useState<string>("");
+  const [pcImageFile, setPcImageFile] = useState<File | null>(null);
+  const [mobileImageFile, setMobileImageFile] = useState<File | null>(null);
+  const [isUploadingPc, setIsUploadingPc] = useState(false);
+  const [isUploadingMobile, setIsUploadingMobile] = useState(false);
+  const pcFileInputRef = useRef<HTMLInputElement>(null);
+  const mobileFileInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
@@ -46,8 +53,90 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
       setLinkUrl("");
       setPcImagePreview("");
       setMobileImagePreview("");
+      setPcImageFile(null);
+      setMobileImageFile(null);
     }
   }, [banner]);
+
+  const handlePcImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 이미지 파일인지 확인
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    // 파일 크기 확인 (10MB 제한)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('파일 크기는 10MB 이하여야 합니다.');
+      return;
+    }
+
+    setPcImageFile(file);
+    
+    // 미리보기 생성
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPcImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // 파일 업로드
+    setIsUploadingPc(true);
+    try {
+      const uploadedUrl = await fileApi.uploadFile(file, 'banners');
+      setImagePcUrl(uploadedUrl);
+      alert('PC 이미지가 업로드되었습니다.');
+    } catch (error: any) {
+      alert(error?.response?.data?.message || '이미지 업로드에 실패했습니다.');
+      setPcImageFile(null);
+      setPcImagePreview("");
+    } finally {
+      setIsUploadingPc(false);
+    }
+  };
+
+  const handleMobileImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 이미지 파일인지 확인
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    // 파일 크기 확인 (10MB 제한)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('파일 크기는 10MB 이하여야 합니다.');
+      return;
+    }
+
+    setMobileImageFile(file);
+    
+    // 미리보기 생성
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMobileImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // 파일 업로드
+    setIsUploadingMobile(true);
+    try {
+      const uploadedUrl = await fileApi.uploadFile(file, 'banners');
+      setImageMobileUrl(uploadedUrl);
+      alert('모바일 이미지가 업로드되었습니다.');
+    } catch (error: any) {
+      alert(error?.response?.data?.message || '이미지 업로드에 실패했습니다.');
+      setMobileImageFile(null);
+      setMobileImagePreview("");
+    } finally {
+      setIsUploadingMobile(false);
+    }
+  };
 
   const createMutation = useMutation({
     mutationFn: (data: {
@@ -198,18 +287,47 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              PC 이미지 URL
+              PC 이미지
             </label>
-            <input
-              type="url"
-              value={imagePcUrl}
-              onChange={(e) => {
-                setImagePcUrl(e.target.value);
-                setPcImagePreview(e.target.value);
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/image.jpg"
-            />
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  ref={pcFileInputRef}
+                  accept="image/*"
+                  onChange={handlePcImageFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => pcFileInputRef.current?.click()}
+                  disabled={isUploadingPc}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUploadingPc ? "업로드 중..." : "파일 선택"}
+                </button>
+                {pcImageFile && (
+                  <span className="px-3 py-2 text-sm text-gray-600 self-center">
+                    {pcImageFile.name}
+                  </span>
+                )}
+              </div>
+              <div className="text-sm text-gray-500">
+                또는 직접 URL 입력
+              </div>
+              <input
+                type="url"
+                value={imagePcUrl}
+                onChange={(e) => {
+                  setImagePcUrl(e.target.value);
+                  if (e.target.value) {
+                    setPcImagePreview(e.target.value);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
             {pcImagePreview && (
               <div className="relative w-full h-48 border border-gray-300 rounded-md overflow-hidden bg-gray-100 mt-2">
                 <Image
@@ -225,18 +343,47 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              모바일 이미지 URL
+              모바일 이미지
             </label>
-            <input
-              type="url"
-              value={imageMobileUrl}
-              onChange={(e) => {
-                setImageMobileUrl(e.target.value);
-                setMobileImagePreview(e.target.value);
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/image.jpg"
-            />
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  ref={mobileFileInputRef}
+                  accept="image/*"
+                  onChange={handleMobileImageFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => mobileFileInputRef.current?.click()}
+                  disabled={isUploadingMobile}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUploadingMobile ? "업로드 중..." : "파일 선택"}
+                </button>
+                {mobileImageFile && (
+                  <span className="px-3 py-2 text-sm text-gray-600 self-center">
+                    {mobileImageFile.name}
+                  </span>
+                )}
+              </div>
+              <div className="text-sm text-gray-500">
+                또는 직접 URL 입력
+              </div>
+              <input
+                type="url"
+                value={imageMobileUrl}
+                onChange={(e) => {
+                  setImageMobileUrl(e.target.value);
+                  if (e.target.value) {
+                    setMobileImagePreview(e.target.value);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
             {mobileImagePreview && (
               <div className="relative w-full h-48 border border-gray-300 rounded-md overflow-hidden bg-gray-100 mt-2">
                 <Image
