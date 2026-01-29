@@ -67,6 +67,7 @@ export interface Dashboard {
     vipCustomers: number;
   };
   totalOrders: number;
+  totalSales: number;
   monthlySales: Array<{
     month: string;
     amount: number;

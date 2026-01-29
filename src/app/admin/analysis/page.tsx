@@ -72,7 +72,7 @@ export default function AdminAnalysis() {
   }
 
   // 통계 계산
-  const totalSales = filteredData.monthlySales.reduce((sum, item) => sum + item.amount, 0);
+  const totalSales = filteredData.totalSales || 0; // 백엔드에서 제공하는 총 매출액 사용
   const totalOrders = filteredData.totalOrders || 0; // 백엔드에서 제공하는 총 주문 건수 사용
   const avgOrderValue = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
   
