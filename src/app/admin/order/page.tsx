@@ -405,16 +405,7 @@ export default function AdminOrder() {
                 </button>
               </div>
             ) : orderDetail ? (
-              <>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="text-grey-46 hover:text-grey-20"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-6">
+              <div className="space-y-6">
               {/* 구매자 정보 */}
               <div>
                 <h3 className="text-lg font-semibold text-grey-20 mb-3">구매자 정보</h3>
@@ -506,9 +497,8 @@ export default function AdminOrder() {
                   </div>
                 </div>
               )}
-            </div>
-              </>
-            )}
+              </div>
+            ) : null}
           </div>
         </div>
       )}
