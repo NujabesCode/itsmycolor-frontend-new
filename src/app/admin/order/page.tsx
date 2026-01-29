@@ -46,7 +46,7 @@ export default function AdminOrder() {
     queryKey: ['order-detail', selectedOrder?.id],
     queryFn: async () => {
       if (!selectedOrder?.id) return null;
-      const response = await axiosInstance.get(`/orders/${selectedOrder.id}`);
+      const response = await axiosInstance.get(`/orders/admin/${selectedOrder.id}`);
       return response.data;
     },
     enabled: !!selectedOrder?.id,
