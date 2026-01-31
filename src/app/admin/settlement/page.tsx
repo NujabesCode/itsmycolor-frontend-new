@@ -41,14 +41,8 @@ export default function AdminSettlement() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [selectedSettlement, setSelectedSettlement] = useState<Settlement | null>(null);
-  const [settlementYear, setSettlementYear] = useState<number>(() => {
-    const now = new Date();
-    return now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
-  });
-  const [settlementMonth, setSettlementMonth] = useState<number>(() => {
-    const now = new Date();
-    return now.getMonth() === 0 ? 12 : now.getMonth();
-  });
+  const [settlementYear, setSettlementYear] = useState<number | undefined>(undefined);
+  const [settlementMonth, setSettlementMonth] = useState<number | undefined>(undefined);
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [commissionRate, setCommissionRate] = useState<number>(12);
   const queryClient = useQueryClient();
@@ -129,15 +123,20 @@ export default function AdminSettlement() {
 
   // 브랜드별 정산 생성 처리
   const createBrandSettlementMutation = useMutation({
-    mutationFn: async ({ brandId, year, month, commissionRate }: { brandId: string; year: number; month: number; commissionRate: number }) => {
-      const params: any = { brandId, year, month, commissionRate };
+    mutationFn: async ({ brandId, year, month, commissionRate }: { brandId: string; year?: number; month?: number; commissionRate: number }) => {
+      const params: any = { brandId, commissionRate };
+      if (year) params.year = year;
+      if (month) params.month = month;
       const response = await axiosInstance.post('/settlements/calculate-brand', {}, { params });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-settlements'] });
       const brandName = brands?.find(b => b.id === selectedBrandId)?.name || '브랜드';
-      alert(`${brandName}의 ${settlementYear}년 ${settlementMonth}월 정산이 생성되었습니다.`);
+      const periodText = settlementYear && settlementMonth 
+        ? `${settlementYear}년 ${settlementMonth}월`
+        : '전체 기간';
+      alert(`${brandName}의 ${periodText} 정산이 생성되었습니다.`);
       setSelectedBrandId('');
     },
     onError: (error: any) => {
