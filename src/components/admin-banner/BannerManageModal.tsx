@@ -11,9 +11,10 @@ import Image from "next/image";
 interface BannerManageModalProps {
   banner: Banner | null;
   onClose: () => void;
+  existingPublicBanners?: Banner[]; // 기존 공개 배너 목록
 }
 
-export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) => {
+export const BannerManageModal = ({ banner, onClose, existingPublicBanners = [] }: BannerManageModalProps) => {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [visibility, setVisibility] = useState<BannerVisibility>(BannerVisibility.PRIVATE);
@@ -44,10 +45,31 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
       setPcImagePreview(banner.imagePcUrl || "");
       setMobileImagePreview(banner.imageMobileUrl || "");
     } else {
+      // 새 배너 추가 시: 기본값을 공개로 설정하고 다음 우선순위 자동 할당
       setTitle("");
       setSubtitle("");
-      setVisibility(BannerVisibility.PRIVATE);
-      setPriority(1);
+      setVisibility(BannerVisibility.PUBLIC);
+      
+      // 기존 공개 배너의 우선순위 확인 (1~3만 사용)
+      const publicPriorities = existingPublicBanners
+        .filter(b => b.visibility === BannerVisibility.PUBLIC && b.priority >= 1 && b.priority <= 3)
+        .map(b => b.priority)
+        .sort((a, b) => a - b);
+      
+      // 다음 사용 가능한 우선순위 찾기 (1, 2, 3 중에서)
+      let nextPriority = 1;
+      for (let i = 1; i <= 3; i++) {
+        if (!publicPriorities.includes(i)) {
+          nextPriority = i;
+          break;
+        }
+      }
+      // 모두 사용 중이면 최대값 + 1 (하지만 3을 넘지 않음)
+      if (nextPriority > 3) {
+        nextPriority = Math.min(3, publicPriorities.length + 1);
+      }
+      
+      setPriority(nextPriority);
       setImagePcUrl("");
       setImageMobileUrl("");
       setLinkUrl("");
@@ -56,7 +78,7 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
       setPcImageFile(null);
       setMobileImageFile(null);
     }
-  }, [banner]);
+  }, [banner, existingPublicBanners]);
 
   const handlePcImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -186,6 +208,14 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
       return;
     }
 
+    // 공개 배너인 경우 우선순위 검증
+    if (visibility === BannerVisibility.PUBLIC) {
+      if (!priority || priority < 1 || priority > 3) {
+        alert("공개 배너는 우선순위(1~3)가 필수입니다.");
+        return;
+      }
+    }
+
     const data = {
       title: title.trim(),
       subtitle: subtitle.trim() || undefined,
@@ -251,11 +281,28 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
             <select
               value={visibility}
               onChange={(e) => {
-                setVisibility(e.target.value as BannerVisibility);
-                if (e.target.value === BannerVisibility.PRIVATE) {
+                const newVisibility = e.target.value as BannerVisibility;
+                setVisibility(newVisibility);
+                if (newVisibility === BannerVisibility.PRIVATE) {
                   setPriority(0);
-                } else if (priority === 0) {
-                  setPriority(1);
+                } else if (newVisibility === BannerVisibility.PUBLIC) {
+                  // 공개로 변경 시, 기존 공개 배너의 우선순위 확인하여 다음 우선순위 자동 할당
+                  const publicPriorities = existingPublicBanners
+                    .filter(b => b.visibility === BannerVisibility.PUBLIC && b.priority >= 1 && b.priority <= 3)
+                    .map(b => b.priority)
+                    .sort((a, b) => a - b);
+                  
+                  let nextPriority = 1;
+                  for (let i = 1; i <= 3; i++) {
+                    if (!publicPriorities.includes(i)) {
+                      nextPriority = i;
+                      break;
+                    }
+                  }
+                  if (nextPriority > 3) {
+                    nextPriority = Math.min(3, publicPriorities.length + 1);
+                  }
+                  setPriority(nextPriority);
                 }
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -268,19 +315,24 @@ export const BannerManageModal = ({ banner, onClose }: BannerManageModalProps) =
           {visibility === BannerVisibility.PUBLIC && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                우선순위 (1~5) <span className="text-red-500">*</span>
+                우선순위 (1~3) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
                 min="1"
-                max="5"
+                max="3"
                 value={priority}
-                onChange={(e) => setPriority(parseInt(e.target.value) || 1)}
+                onChange={(e) => {
+                  const newPriority = parseInt(e.target.value) || 1;
+                  // 1~3 범위로 제한
+                  const clampedPriority = Math.max(1, Math.min(3, newPriority));
+                  setPriority(clampedPriority);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
               <p className="text-xs text-gray-500 mt-1">
-                우선순위가 낮을수록 먼저 표시됩니다. (1~5)
+                우선순위가 낮을수록 먼저 표시됩니다. 메인 페이지 슬라이더에는 최대 3개까지 표시됩니다. (1~3)
               </p>
             </div>
           )}

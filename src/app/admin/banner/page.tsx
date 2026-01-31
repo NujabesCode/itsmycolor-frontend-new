@@ -271,6 +271,7 @@ export default function AdminBanner() {
         <BannerManageModal
           banner={selectedBanner}
           onClose={handleCloseModal}
+          existingPublicBanners={publicBanners}
         />
       )}
     </div>
