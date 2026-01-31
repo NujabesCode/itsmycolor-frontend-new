@@ -141,8 +141,10 @@ export default function AdminSettlement() {
     },
     onError: (error: any) => {
       console.error('정산 생성 오류:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || '정산 생성에 실패했습니다.';
-      alert(errorMessage);
+      console.error('에러 응답 데이터:', error?.response?.data);
+      console.error('에러 상태 코드:', error?.response?.status);
+      const errorMessage = error?.response?.data?.message || error?.response?.data?.error || error?.message || '정산 생성에 실패했습니다.';
+      alert(`정산 생성 오류: ${errorMessage}\n\n상세 정보는 브라우저 콘솔을 확인해주세요.`);
     },
   });
 
