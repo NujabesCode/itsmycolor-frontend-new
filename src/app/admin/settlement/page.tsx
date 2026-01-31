@@ -53,8 +53,14 @@ export default function AdminSettlement() {
   const [commissionRate, setCommissionRate] = useState<number>(12);
   const queryClient = useQueryClient();
 
-  // 해당 년월에 주문이 있는 브랜드 목록 조회
-  const { data: brands } = useQuery({
+  // 전체 브랜드 목록 조회 (초기 표시용)
+  const { data: allBrands } = useQuery({
+    queryKey: ['admin-brands', BrandStatus.APPROVED],
+    queryFn: () => adminApi.getBrandList({ status: BrandStatus.APPROVED }),
+  });
+
+  // 해당 년월에 주문이 있는 브랜드 목록 조회 (필터링용)
+  const { data: brandsWithOrders } = useQuery({
     queryKey: ['brands-with-orders', settlementYear, settlementMonth],
     queryFn: () => {
       if (!settlementYear || !settlementMonth) {
@@ -64,6 +70,11 @@ export default function AdminSettlement() {
     },
     enabled: !!settlementYear && !!settlementMonth,
   });
+
+  // 표시할 브랜드 목록 결정: 년도/월이 선택되면 필터링된 목록, 아니면 전체 목록
+  const brands = settlementYear && settlementMonth && brandsWithOrders && brandsWithOrders.length > 0
+    ? brandsWithOrders
+    : allBrands || [];
 
   // FC-001: 기간 필터로 정산 내역 조회
   const { data: settlements, isLoading, error } = useQuery({
