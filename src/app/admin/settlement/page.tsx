@@ -6,6 +6,7 @@ import { axiosInstance } from '@/serivces/client';
 import { Settlement, SettlementStatus } from '@/serivces/settlement/type';
 import { IoDownloadOutline, IoCalendarOutline, IoCheckmarkCircle, IoCloseCircle } from 'react-icons/io5';
 import { adminApi } from '@/serivces/admin/request';
+import { Brand, BrandStatus } from '@/serivces/admin/type';
 
 // Excel 다운로드 함수
 const downloadExcel = (data: any[], filename: string) => {
@@ -47,7 +48,15 @@ export default function AdminSettlement() {
     const now = new Date();
     return now.getMonth() === 0 ? 12 : now.getMonth();
   });
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
+  const [commissionRate, setCommissionRate] = useState<number>(12);
   const queryClient = useQueryClient();
+
+  // 브랜드 목록 조회
+  const { data: brands } = useQuery({
+    queryKey: ['admin-brands', BrandStatus.APPROVED],
+    queryFn: () => adminApi.getBrandList({ status: BrandStatus.APPROVED }),
+  });
 
   // FC-001: 기간 필터로 정산 내역 조회
   const { data: settlements, isLoading, error } = useQuery({
@@ -100,29 +109,45 @@ export default function AdminSettlement() {
     },
   });
 
-  // 정산 생성 처리
-  const createSettlementMutation = useMutation({
-    mutationFn: async ({ year, month }: { year: number; month: number }) => {
-      const params: any = { year, month };
-      const response = await axiosInstance.post('/settlements/calculate-monthly', {}, { params });
+  // 브랜드별 정산 생성 처리
+  const createBrandSettlementMutation = useMutation({
+    mutationFn: async ({ brandId, year, month, commissionRate }: { brandId: string; year: number; month: number; commissionRate: number }) => {
+      const params: any = { brandId, year, month, commissionRate };
+      const response = await axiosInstance.post('/settlements/calculate-brand', {}, { params });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-settlements'] });
-      alert(`${settlementYear}년 ${settlementMonth}월 정산이 생성되었습니다.`);
+      const brandName = brands?.find(b => b.id === selectedBrandId)?.name || '브랜드';
+      alert(`${brandName}의 ${settlementYear}년 ${settlementMonth}월 정산이 생성되었습니다.`);
+      setSelectedBrandId('');
     },
     onError: (error: any) => {
       alert(error?.response?.data?.message || '정산 생성에 실패했습니다.');
     },
   });
 
-  const handleCreateSettlement = () => {
+  const handleCreateBrandSettlement = () => {
+    if (!selectedBrandId) {
+      alert('브랜드를 선택해주세요.');
+      return;
+    }
     if (!settlementYear || !settlementMonth) {
       alert('년도와 월을 선택해주세요.');
       return;
     }
-    if (confirm(`${settlementYear}년 ${settlementMonth}월 정산을 생성하시겠습니까?`)) {
-      createSettlementMutation.mutate({ year: settlementYear, month: settlementMonth });
+    if (commissionRate < 0 || commissionRate > 100) {
+      alert('수수료율은 0~100 사이의 값이어야 합니다.');
+      return;
+    }
+    const brandName = brands?.find(b => b.id === selectedBrandId)?.name || '브랜드';
+    if (confirm(`${brandName}의 ${settlementYear}년 ${settlementMonth}월 정산을 생성하시겠습니까?\n수수료율: ${commissionRate}%`)) {
+      createBrandSettlementMutation.mutate({ 
+        brandId: selectedBrandId, 
+        year: settlementYear, 
+        month: settlementMonth,
+        commissionRate 
+      });
     }
   };
 
@@ -189,8 +214,23 @@ export default function AdminSettlement() {
 
       {/* 정산 생성 섹션 */}
       <div className="bg-white-solid rounded-xl shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold text-grey-20 mb-4">정산 생성</h2>
-        <div className="flex items-center gap-4">
+        <h2 className="text-lg font-semibold text-grey-20 mb-4">브랜드별 정산 생성</h2>
+        <div className="flex items-end gap-4 flex-wrap">
+          <div>
+            <label className="block text-sm font-medium text-grey-20 mb-1">브랜드</label>
+            <select
+              value={selectedBrandId}
+              onChange={(e) => setSelectedBrandId(e.target.value)}
+              className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-48"
+            >
+              <option value="">브랜드 선택</option>
+              {brands?.map((brand) => (
+                <option key={brand.id} value={brand.id}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-grey-20 mb-1">년도</label>
             <input
@@ -216,18 +256,30 @@ export default function AdminSettlement() {
               ))}
             </select>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-grey-20 mb-1">수수료율 (%)</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={commissionRate}
+              onChange={(e) => setCommissionRate(parseFloat(e.target.value) || 0)}
+              className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-32"
+            />
+          </div>
           <div className="flex items-end">
             <button
-              onClick={handleCreateSettlement}
-              disabled={createSettlementMutation.isPending}
+              onClick={handleCreateBrandSettlement}
+              disabled={createBrandSettlementMutation.isPending || !selectedBrandId}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createSettlementMutation.isPending ? '생성 중...' : '정산 생성'}
+              {createBrandSettlementMutation.isPending ? '생성 중...' : '정산 생성'}
             </button>
           </div>
-          <div className="flex-1 text-sm text-grey-46">
-            선택한 년월의 주문 데이터를 기반으로 정산을 자동 계산합니다.
-          </div>
+        </div>
+        <div className="mt-4 text-sm text-grey-46">
+          브랜드를 선택하고 년월, 수수료율을 설정한 후 정산을 생성하면 해당 브랜드의 주문 데이터를 기반으로 정산이 자동 계산됩니다.
         </div>
       </div>
 
@@ -276,6 +328,7 @@ export default function AdminSettlement() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-grey-20">정산월</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-grey-20">브랜드명</th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-grey-20">총 매출</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-grey-20">수수료율</th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-grey-20">수수료</th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-grey-20">지급금액</th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-grey-20">상태</th>
@@ -296,6 +349,9 @@ export default function AdminSettlement() {
                     </td>
                     <td className="py-3 px-4 text-sm text-grey-20 text-right">
                       {settlement.totalSales.toLocaleString()}원
+                    </td>
+                    <td className="py-3 px-4 text-sm text-grey-20 text-right">
+                      {settlement.commissionRate}%
                     </td>
                     <td className="py-3 px-4 text-sm text-grey-20 text-right">
                       {settlement.commissionAmount.toLocaleString()}원
@@ -327,13 +383,13 @@ export default function AdminSettlement() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm('지급을 완료 처리하시겠습니까?')) {
+                              if (confirm('정산처리를 완료하시겠습니까? (지급 완료 상태로 변경됩니다)')) {
                                 completePaymentMutation.mutate(settlement.id);
                               }
                             }}
                             className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
                           >
-                            지급 완료
+                            정산처리 완료
                           </button>
                         )}
                         <button
@@ -351,8 +407,8 @@ export default function AdminSettlement() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-grey-46">
-                    조회된 정산 내역이 없습니다. 상단의 "정산 생성" 섹션에서 정산을 생성해주세요.
+                  <td colSpan={8} className="py-8 text-center text-grey-46">
+                    조회된 정산 내역이 없습니다. 상단의 "브랜드별 정산 생성" 섹션에서 정산을 생성해주세요.
                   </td>
                 </tr>
               )}
