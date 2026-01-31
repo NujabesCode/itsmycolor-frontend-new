@@ -282,23 +282,25 @@ export default function AdminSettlement() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-grey-20 mb-1">년도</label>
+            <label className="block text-sm font-medium text-grey-20 mb-1">년도 (선택사항)</label>
             <input
               type="number"
               min="2020"
               max={new Date().getFullYear()}
-              value={settlementYear}
-              onChange={(e) => setSettlementYear(parseInt(e.target.value) || new Date().getFullYear())}
+              value={settlementYear || ''}
+              onChange={(e) => setSettlementYear(e.target.value ? parseInt(e.target.value) : undefined)}
+              placeholder="전체 기간"
               className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-32"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-grey-20 mb-1">월</label>
+            <label className="block text-sm font-medium text-grey-20 mb-1">월 (선택사항)</label>
             <select
-              value={settlementMonth}
-              onChange={(e) => setSettlementMonth(parseInt(e.target.value))}
+              value={settlementMonth || ''}
+              onChange={(e) => setSettlementMonth(e.target.value ? parseInt(e.target.value) : undefined)}
               className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-32"
             >
+              <option value="">전체 기간</option>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
                 <option key={month} value={month}>
                   {month}월
