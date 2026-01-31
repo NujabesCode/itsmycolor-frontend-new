@@ -1,12 +1,47 @@
-import { Suspense } from "react";
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { ROUTE } from "@/configs/constant/route";
 import { ProductView } from "@/components/main/ProductView";
 import { ProductMainView, BodyTypeView } from "@/components/main/ProductMainView";
 import { BannerSlider } from "@/components/main/BannerSlider";
 import { UserRecommendView } from "@/components/main/UserRecommendView";
+import { ShoppingProductDetailClient } from "@/components/shopping-product-detail/ShoppingProductDetailClient";
 
 export default function Main() {
+  const [productId, setProductId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return;
+    
+    const pathname = window.location.pathname;
+    const fullUrl = window.location.href;
+    
+    // pathname이 / 또는 /index.html이고, URL에 상품 ID가 있는 경우
+    // S3에서 404 발생 시 index.html로 리다이렉트되지만 브라우저 주소창에는 원래 URL이 표시됨
+    if (pathname === '/' || pathname === '/index.html') {
+      const urlMatch = fullUrl.match(/\/shopping\/product\/([^\/\?\#]+)/);
+      
+      if (urlMatch && urlMatch[1]) {
+        const extractedId = urlMatch[1].replace(/\.html$/, '');
+        if (extractedId && extractedId !== 'dummy') {
+          console.log('[Main] 상품 ID 발견, 상품 상세 페이지 렌더링:', extractedId);
+          setProductId(extractedId);
+          // URL 복원
+          window.history.replaceState({}, '', `/shopping/product/${extractedId}.html`);
+          return;
+        }
+      }
+    }
+  }, []);
+
+  // 상품 ID가 있으면 상품 상세 페이지 렌더링
+  if (productId) {
+    return <ShoppingProductDetailClient initialId={productId} />;
+  }
+
   return (
     <main className="min-h-screen bg-white">
       {/* Main Banner Slider */}

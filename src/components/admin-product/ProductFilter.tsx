@@ -3,20 +3,45 @@
 import { useDebounce } from '@/hooks/common/useDebounce';
 import { useQueryString } from '@/hooks/common/useQueryString';
 import { BodyType } from '@/serivces/user/type';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export const ProductFilter = () => {
   const [sort, setSort] = useQueryString<string>('sort', 'latest');
   const [bodyType, setBodyType] = useQueryString<string>('bodyType', '');
 
-  const [tempSearchTerm, setTempSearchTerm] = useState('');
+  // URL에서 초기 검색어 가져오기 (읽기 전용)
+  const [searchFromUrl] = useQueryString<string>('search', '');
+  
+  // 입력 필드 상태 (URL과 독립적으로 관리)
+  const [tempSearchTerm, setTempSearchTerm] = useState(() => {
+    // 초기 렌더링 시에만 URL에서 검색어 가져오기
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('search') || '';
+    }
+    return '';
+  });
+  
   const debouncedSearchTerm = useDebounce(tempSearchTerm, 500);
   const [, setSearchTerm] = useQueryString<string>('search', '');
+  
+  // 마지막으로 URL에 저장한 값 추적
+  const lastSavedValue = useRef<string>('');
 
+  // debounced 검색어를 URL에 반영 (사용자 입력이 완료된 후에만)
   useEffect(() => {
-    setSearchTerm(debouncedSearchTerm);
+    // debounced 값이 실제로 변경되었을 때만 URL 업데이트
+    if (debouncedSearchTerm !== lastSavedValue.current) {
+      lastSavedValue.current = debouncedSearchTerm;
+      setSearchTerm(debouncedSearchTerm);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchTerm]);
+
+  // 입력 필드 변경 핸들러
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTempSearchTerm(e.target.value);
+  };
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
@@ -62,9 +87,9 @@ export const ProductFilter = () => {
         <input
           type="text"
           className="w-full px-4 py-2 border border-grey-91 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-40"
-          placeholder="브랜드명으로 검색..."
+          placeholder="상품명으로 검색..."
           value={tempSearchTerm}
-          onChange={(e) => setTempSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
     </div>

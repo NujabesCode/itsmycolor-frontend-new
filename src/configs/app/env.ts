@@ -1,24 +1,19 @@
 // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가
 // 빌드 시점과 런타임 모두에서 올바른 URL 사용 보장
-const getApiUrl = () => {
-  const envUrl = process.env.NEXT_PUBLIC_API_URL || "http://13.125.130.10:3000";
-  // api.itsmycolorshop.com이 설정되어 있으면 항상 올바른 URL로 변경
-  if (envUrl.includes('api.itsmycolorshop.com')) {
-    console.warn('[ENV] api.itsmycolorshop.com 감지 - 올바른 URL로 강제 변경');
-    return "http://13.125.130.10:3000";
-  }
-  // 프로덕션 환경에서는 항상 올바른 URL 사용 (로컬 개발 환경 제외)
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return "http://13.125.130.10:3000";
-    }
-  }
-  return envUrl;
-};
+// 모듈 초기화 순서 문제를 방지하기 위해 모든 값을 상수로 설정
+
+// API URL은 항상 고정값 사용 (로컬 개발은 client.ts에서 처리)
+const DEFAULT_API_URL = "http://43.201.54.58:3000";
+
+// 환경 변수에서 가져오되, api.itsmycolorshop.com은 차단
+const envApiUrl = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
+const safeApiUrl = envApiUrl.includes('api.itsmycolorshop.com') 
+  ? DEFAULT_API_URL 
+  : envApiUrl;
 
 export const ENV = {
-  API_URL: getApiUrl(),
+  // API_URL은 항상 고정값 사용 (런타임에 window 체크는 client.ts에서 수행)
+  API_URL: safeApiUrl,
 
   // TOSS
   TOSS_CLIENT_KEY: process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "",
@@ -35,4 +30,4 @@ export const ENV = {
   NAVER_CLIENT_ID: process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || "",
   NAVER_REDIRECT_URL: process.env.NEXT_PUBLIC_NAVER_REDIRECT_URL || "",
   NAVER_STATE: process.env.NEXT_PUBLIC_NAVER_STATE || "",
-};
+} as const;

@@ -1,10 +1,30 @@
-import { ProductListView } from '@/components/shopping/ProductListView';
-import { ShoppingFilter } from '@/components/shopping/ShoppingFilter';
-import { ShoppingMobileFilter } from '@/components/shopping/ShoppingMobileFilter';
-import { BestProductsSection } from '@/components/shopping/BestProductsSection';
+"use client";
+
+import dynamic from 'next/dynamic';
 import { ROUTE } from '@/configs/constant/route';
 import Link from 'next/link';
-import React, { Suspense } from 'react';
+import React from 'react';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+
+// dynamic import를 사용하되, 명시적으로 ssr: false 설정
+const ProductListView = dynamic(() => import('@/components/shopping/ProductListView').then(mod => ({ default: mod.ProductListView })), { 
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+});
+
+const ShoppingFilter = dynamic(() => import('@/components/shopping/ShoppingFilter').then(mod => ({ default: mod.ShoppingFilter })), { 
+  ssr: false,
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />
+});
+
+const ShoppingMobileFilter = dynamic(() => import('@/components/shopping/ShoppingMobileFilter').then(mod => ({ default: mod.ShoppingMobileFilter })), { 
+  ssr: false 
+});
+
+const BestProductsSection = dynamic(() => import('@/components/shopping/BestProductsSection').then(mod => ({ default: mod.BestProductsSection })), { 
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+});
 
 export default function Shopping() {
   return (
@@ -63,9 +83,9 @@ export default function Shopping() {
           <h2 className="text-2xl lg:text-3xl font-medium mb-2 text-gray-900">BEST</h2>
           <p className="text-sm text-gray-600">지금 가장 인기 있는 상품</p>
         </div>
-        <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}>
+        <ErrorBoundary>
           <BestProductsSection />
-        </Suspense>
+        </ErrorBoundary>
       </section>
 
       {/* Main Content */}
@@ -74,39 +94,23 @@ export default function Shopping() {
           {/* Sidebar Filter - Desktop */}
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-24">
-              <Suspense
-                fallback={
-                  <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />
-                }
-              >
+              <ErrorBoundary>
                 <ShoppingFilter />
-              </Suspense>
+              </ErrorBoundary>
             </div>
           </aside>
 
           {/* Product Grid */}
           <div className="flex-1">
             {/* Mobile Filter Toggle */}
-            <Suspense>
+            <ErrorBoundary>
               <ShoppingMobileFilter />
-            </Suspense>
+            </ErrorBoundary>
 
             {/* Products */}
-            <Suspense
-              fallback={
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="space-y-3">
-                      <div className="aspect-[3/4] bg-gray-100 animate-pulse rounded-lg" />
-                      <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4" />
-                      <div className="h-4 bg-gray-100 animate-pulse rounded w-1/2" />
-                    </div>
-                  ))}
-                </div>
-              }
-            >
+            <ErrorBoundary>
               <ProductListView />
-            </Suspense>
+            </ErrorBoundary>
           </div>
         </div>
       </section>

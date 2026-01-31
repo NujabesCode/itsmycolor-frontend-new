@@ -7,7 +7,7 @@ export const dynamicParams = false;
 export async function generateStaticParams() {
   try {
     // 빌드 시점에 상품 목록에서 브랜드 ID를 추출
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://13.125.130.10:3000";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://43.201.54.58:3000";
     const response = await fetch(`${apiUrl}/products?limit=1000`, {
       cache: 'no-store'
     });

@@ -39,6 +39,7 @@ export const QUERY = {
   ADMIN_DASHBOARD: 'admin-dashboard',
   ADMIN_BANNER_LIST: 'admin-banner-list',
   ADMIN_BANNER: 'admin-banner',
+  PUBLIC_BANNERS: 'public-banners',
 
   // notification key
   NOTIFICATION_LIST: 'notification-list',

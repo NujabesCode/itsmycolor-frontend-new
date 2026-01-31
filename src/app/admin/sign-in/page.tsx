@@ -36,9 +36,16 @@ function SignInContent() {
       alert("로그인에 성공했습니다.");
 
       if (to) {
-        router.replace(atob(to));
+        const decodedTo = atob(to);
+        // 정적 export 모드에서는 .html 확장자 추가
+        if (decodedTo.startsWith('/admin') && !decodedTo.endsWith('.html')) {
+          window.location.href = `${decodedTo}.html`;
+        } else {
+          router.replace(decodedTo);
+        }
       } else {
-        router.replace(ROUTE.ADMIN_MAIN);
+        // 관리자 메인 페이지는 브랜드 관리 페이지로 리다이렉트
+        window.location.href = `${ROUTE.ADMIN_BRAND}.html`;
       }
     } catch (error: any) {
       // ADM-002: 구체적인 에러 메시지 표시

@@ -81,17 +81,17 @@ export const BrandManageModal = ({ brand, onClose }: BrandManageModalProps) => {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* 헤더 */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-8 py-6">
+        <div className="bg-gray-50 border-b border-gray-100 px-8 py-5">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-white mb-1">브랜드 입점 신청서</h2>
-              <p className="text-pink-100">브랜드 정보를 검토하고 승인 여부를 결정하세요</p>
+              <h2 className="text-xl font-semibold text-gray-700 mb-0.5">브랜드 입점 신청서</h2>
+              <p className="text-sm text-gray-500">브랜드 정보를 검토하고 승인 여부를 결정하세요</p>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors"
             >
-              <IoClose className="text-xl" />
+              <IoClose className="text-lg" />
             </button>
           </div>
         </div>
@@ -101,36 +101,36 @@ export const BrandManageModal = ({ brand, onClose }: BrandManageModalProps) => {
 
           {/* 기본 정보 섹션 */}
           <div className="mb-8">
-            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 mb-6">
+            <div className="bg-gray-50 rounded-2xl p-6 mb-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <IoBusiness className="text-pink-500" />
+                <IoBusiness className="text-gray-600" />
                 기본 정보
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <IoPricetag className="text-pink-500" />
+                    <IoPricetag className="text-gray-600" />
                     <p className="font-semibold text-gray-700">문의 분류</p>
                   </div>
                   <p className="text-gray-900 font-medium">{brand.inquiryType ?? "-"}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <IoBusiness className="text-pink-500" />
+                    <IoBusiness className="text-gray-600" />
                     <p className="font-semibold text-gray-700">회사명</p>
                   </div>
                   <p className="text-gray-900 font-medium">{brand.companyName ?? "-"}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <IoStorefront className="text-pink-500" />
+                    <IoStorefront className="text-gray-600" />
                     <p className="font-semibold text-gray-700">브랜드명</p>
                   </div>
                   <p className="text-gray-900 font-medium">{brand.name ?? "-"}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <IoGlobe className="text-pink-500" />
+                    <IoGlobe className="text-gray-600" />
                     <p className="font-semibold text-gray-700">홈페이지/SNS</p>
                   </div>
                   <p className="text-gray-900 font-medium break-all">{brand.sns ?? "-"}</p>
@@ -139,9 +139,9 @@ export const BrandManageModal = ({ brand, onClose }: BrandManageModalProps) => {
             </div>
             
             {/* 카테고리 정보 */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-6">
+            <div className="bg-gray-50 rounded-2xl p-6 mb-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <IoPricetag className="text-blue-500" />
+                <IoPricetag className="text-gray-600" />
                 카테고리 정보
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -157,29 +157,29 @@ export const BrandManageModal = ({ brand, onClose }: BrandManageModalProps) => {
             </div>
             
             {/* 담당자 정보 */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 mb-6">
+            <div className="bg-gray-50 rounded-2xl p-6 mb-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <IoPerson className="text-green-500" />
+                <IoPerson className="text-gray-600" />
                 담당자 정보
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <IoPerson className="text-green-500" />
+                    <IoPerson className="text-gray-600" />
                     <p className="font-semibold text-gray-700">담당자명</p>
                   </div>
                   <p className="text-gray-900 font-medium">{brand.representativeName ?? "-"}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <IoMail className="text-green-500" />
+                    <IoMail className="text-gray-600" />
                     <p className="font-semibold text-gray-700">이메일</p>
                   </div>
                   <p className="text-gray-900 font-medium break-all">{brand.email ?? "-"}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <IoPhonePortrait className="text-green-500" />
+                    <IoPhonePortrait className="text-gray-600" />
                     <p className="font-semibold text-gray-700">전화번호</p>
                   </div>
                   <p className="text-gray-900 font-medium">{brand.phoneNumber ?? "-"}</p>
@@ -188,9 +188,9 @@ export const BrandManageModal = ({ brand, onClose }: BrandManageModalProps) => {
             </div>
             
             {/* 사업 정보 */}
-            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl p-6 mb-6">
+            <div className="bg-gray-50 rounded-2xl p-6 mb-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <IoStorefront className="text-orange-500" />
+                <IoStorefront className="text-gray-600" />
                 사업 정보
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -210,9 +210,9 @@ export const BrandManageModal = ({ brand, onClose }: BrandManageModalProps) => {
             </div>
             
             {/* 상세 정보 */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6">
+            <div className="bg-gray-50 rounded-2xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <IoDocumentText className="text-purple-500" />
+                <IoDocumentText className="text-gray-600" />
                 상세 정보
               </h3>
               <div className="space-y-6">
@@ -297,7 +297,7 @@ export const BrandManageModal = ({ brand, onClose }: BrandManageModalProps) => {
               </button>
               <button
                 onClick={onApprove}
-                className="group flex items-center gap-3 px-8 py-4 text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
+                className="group flex items-center gap-3 px-8 py-4 text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
               >
                 <IoCheckmarkCircle className="text-xl group-hover:scale-110 transition-transform" />
                 승인

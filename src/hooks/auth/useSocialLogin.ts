@@ -1,14 +1,14 @@
 "use client";
 
-import { ENV } from "@/configs/app/env";
-
 export const useSocialLogin = () => {
   const onKakaoLogin = () => {
+    const kakaoJsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || '';
+    const kakaoRedirectUrl = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URL || '';
     const url =
       "https://kauth.kakao.com/oauth/authorize?client_id=" +
-      ENV.KAKAO_JS_KEY +
+      kakaoJsKey +
       "&redirect_uri=" +
-      ENV.KAKAO_REDIRECT_URL +
+      kakaoRedirectUrl +
       "&response_type=code&" +
       "scope=account_email";
 
@@ -16,11 +16,13 @@ export const useSocialLogin = () => {
   };
 
   const onGoogleLogin = () => {
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+    const googleRedirectUrl = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URL || '';
     const url =
       "https://accounts.google.com/o/oauth2/v2/auth?client_id=" +
-      ENV.GOOGLE_CLIENT_ID +
+      googleClientId +
       "&redirect_uri=" +
-      ENV.GOOGLE_REDIRECT_URL +
+      googleRedirectUrl +
       "&response_type=code&" +
       "scope=email profile";
 
@@ -28,12 +30,15 @@ export const useSocialLogin = () => {
   };
 
   const onNaverLogin = () => {
+    const naverClientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || '';
+    const naverRedirectUrl = process.env.NEXT_PUBLIC_NAVER_REDIRECT_URL || '';
+    const naverState = process.env.NEXT_PUBLIC_NAVER_STATE || '';
     const url = 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=' +
-      ENV.NAVER_CLIENT_ID +
+      naverClientId +
       "&redirect_uri=" +
-      ENV.NAVER_REDIRECT_URL +
+      naverRedirectUrl +
       "&state=" +
-      ENV.NAVER_STATE;
+      naverState;
 
     window.location.href = url;
   };

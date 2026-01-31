@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
   // true로 설정하면 /shopping/ 폴더를 찾게 되어 S3에서 문제 발생
   trailingSlash: false,
   
+  // 빌드 ID를 고정하여 S3 배포 시 chunk 파일 경로 문제 방지
+  // 환경 변수로 빌드 ID를 설정할 수 있음 (CI/CD에서 설정)
+  generateBuildId: async () => {
+    // 환경 변수가 있으면 사용, 없으면 고정값 사용
+    return process.env.NEXT_BUILD_ID || 'build-static';
+  },
+  
   // ESLint 비활성화 (빌드 오류 방지)
   eslint: {
     ignoreDuringBuilds: true,
@@ -52,10 +59,10 @@ const nextConfig: NextConfig = {
     // api.itsmycolorshop.com은 SSL 인증서 만료로 사용 불가
     // Vercel 환경 변수가 잘못 설정되어 있어도 빌드 시점에 올바른 URL로 강제 설정
     NEXT_PUBLIC_API_URL: (() => {
-      const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.125.130.10:3000';
+      const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://43.201.54.58:3000';
       if (envUrl.includes('api.itsmycolorshop.com')) {
         console.warn('[next.config.ts] api.itsmycolorshop.com 감지 - 올바른 URL로 강제 변경');
-        return 'http://13.125.130.10:3000';
+        return 'http://43.201.54.58:3000';
       }
       return envUrl;
     })(),
@@ -68,7 +75,7 @@ const nextConfig: NextConfig = {
       return [
         {
           source: '/api/proxy/:path*',
-          destination: 'http://13.125.130.10:3000/:path*',
+          destination: 'http://43.201.54.58:3000/:path*',
         },
       ];
     }

@@ -5,47 +5,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { ROUTE } from "@/configs/constant/route";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-
-const banners = [
-  {
-    id: 1,
-    image: "/main/banner-collmute.png",
-    mobileImage: "/main/banner-collmute.png", // 모바일용 이미지 (없으면 image 사용)
-    title: "personal color",
-    subtitle: "COOLMUTE - 나만의 퍼스널컬러 맞춤",
-    link: ROUTE.SHOPPING,
-    buttonText: "를 뮤트펀",
-    gradient: "from-purple-700 to-purple-900",
-  },
-  {
-    id: 2,
-    image: "/main/banner-collmute.png",
-    mobileImage: "/main/banner-collmute.png",
-    title: "personal color",
-    subtitle: "COOLMUTE - 나만의 퍼스널컬러 맞춤",
-    link: ROUTE.SHOPPING,
-    buttonText: "를 뮤트펀",
-    gradient: "from-purple-700 to-purple-900",
-  },
-  {
-    id: 3,
-    image: "/main/banner-collmute.png",
-    mobileImage: "/main/banner-collmute.png",
-    title: "personal color",
-    subtitle: "COOLMUTE - 나만의 퍼스널컬러 맞춤",
-    link: ROUTE.SHOPPING,
-    buttonText: "를 뮤트펀",
-    gradient: "from-purple-700 to-purple-900",
-  },
-];
+import { useGetPublicBanners } from "@/serivces/banner/query";
 
 export const BannerSlider = () => {
+  const { data: banners = [], isLoading } = useGetPublicBanners();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 배너가 변경되면 currentIndex 초기화
   useEffect(() => {
-    if (isAutoPlaying) {
+    if (banners.length > 0 && currentIndex >= banners.length) {
+      setCurrentIndex(0);
+    }
+  }, [banners.length, currentIndex]);
+
+  useEffect(() => {
+    if (isAutoPlaying && banners.length > 0) {
       intervalRef.current = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % banners.length);
       }, 5000); // 5초마다 자동 슬라이드
@@ -56,7 +32,7 @@ export const BannerSlider = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, banners.length]);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
@@ -72,6 +48,20 @@ export const BannerSlider = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
     // 수동 조작 후에도 자동 재생 계속
   };
+
+  // 배너가 없거나 로딩 중일 때
+  if (isLoading) {
+    return (
+      <div className="relative h-[400px] md:h-[700px] overflow-hidden bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-400">배너를 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  // 배너가 없을 때
+  if (banners.length === 0) {
+    return null;
+  }
 
   // attrangs 스타일 배너 - 모바일/데스크톱 반응형
   return (
@@ -93,41 +83,45 @@ export const BannerSlider = () => {
             }`}
           >
             {/* 배경 이미지 또는 그라데이션 */}
-            {banner.image ? (
+            {banner.imagePcUrl || banner.imageMobileUrl ? (
               <>
                 {/* 모바일용 이미지 */}
-                <Image
-                  src={banner.mobileImage || banner.image}
-                  alt={banner.title}
-                  fill
-                  className="object-cover md:hidden"
-                  style={{
-                    imageRendering: 'high-quality',
-                    imageRendering: '-webkit-optimize-contrast',
-                  } as React.CSSProperties}
-                  priority={index === 0}
-                  quality={100}
-                  sizes="100vw"
-                  unoptimized={true}
-                />
+                {banner.imageMobileUrl && (
+                  <Image
+                    src={banner.imageMobileUrl}
+                    alt={banner.title}
+                    fill
+                    className="object-cover md:hidden"
+                    style={{
+                      imageRendering: 'high-quality',
+                      imageRendering: '-webkit-optimize-contrast',
+                    } as React.CSSProperties}
+                    priority={index === 0}
+                    quality={100}
+                    sizes="100vw"
+                    unoptimized={true}
+                  />
+                )}
                 {/* 데스크톱용 이미지 */}
-                <Image
-                  src={banner.image}
-                  alt={banner.title}
-                  fill
-                  className="hidden md:block object-cover"
-                  style={{
-                    imageRendering: 'high-quality',
-                    imageRendering: '-webkit-optimize-contrast',
-                  } as React.CSSProperties}
-                  priority={index === 0}
-                  quality={100}
-                  sizes="100vw"
-                  unoptimized={true}
-                />
+                {banner.imagePcUrl && (
+                  <Image
+                    src={banner.imagePcUrl}
+                    alt={banner.title}
+                    fill
+                    className="hidden md:block object-cover"
+                    style={{
+                      imageRendering: 'high-quality',
+                      imageRendering: '-webkit-optimize-contrast',
+                    } as React.CSSProperties}
+                    priority={index === 0}
+                    quality={100}
+                    sizes="100vw"
+                    unoptimized={true}
+                  />
+                )}
               </>
             ) : (
-              <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient || "from-gray-800 to-gray-900"}`} />
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900" />
             )}
             {/* 오버레이 그라데이션 제거 - 원본 이미지 밝기 유지 */}
           </div>
@@ -150,25 +144,29 @@ export const BannerSlider = () => {
               MozOsxFontSmoothing: 'grayscale',
               textRendering: 'optimizeLegibility',
             }}>
-              {banners[currentIndex].title}
+              {banners[currentIndex]?.title || ''}
             </h1>
-            <p className="text-xs md:text-sm mb-3.5" style={{ 
-              fontSize: '13px', 
-              color: 'rgba(255,255,255,0.9)',
-              WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale',
-              textRendering: 'optimizeLegibility',
-            }}>
-              {banners[currentIndex].subtitle}
-            </p>
-            <Link
-              href={banners[currentIndex].link}
-              className="inline-flex items-center gap-1 bg-black text-white px-3 py-1.5 text-xs hover:bg-gray-800 transition-all"
-              style={{ fontSize: '12px' }}
-            >
-              {banners[currentIndex].buttonText}
-              <span className="text-xs">→</span>
-            </Link>
+            {banners[currentIndex]?.subtitle && (
+              <p className="text-xs md:text-sm mb-3.5" style={{ 
+                fontSize: '13px', 
+                color: 'rgba(255,255,255,0.9)',
+                WebkitFontSmoothing: 'antialiased',
+                MozOsxFontSmoothing: 'grayscale',
+                textRendering: 'optimizeLegibility',
+              }}>
+                {banners[currentIndex].subtitle}
+              </p>
+            )}
+            {banners[currentIndex]?.linkUrl && (
+              <Link
+                href={banners[currentIndex].linkUrl}
+                className="inline-flex items-center gap-1 bg-black text-white px-3 py-1.5 text-xs hover:bg-gray-800 transition-all"
+                style={{ fontSize: '12px' }}
+              >
+                자세히 보기
+                <span className="text-xs">→</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

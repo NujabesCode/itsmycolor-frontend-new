@@ -1,3 +1,10 @@
-export const formatDate = (date: string | Date) => {
-  return new Date(date).toISOString().split("T")[0];
+export const formatDate = (date: string | Date | null | undefined) => {
+  if (!date) return '-';
+  try {
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) return '-';
+    return dateObj.toISOString().split("T")[0];
+  } catch (error) {
+    return '-';
+  }
 };

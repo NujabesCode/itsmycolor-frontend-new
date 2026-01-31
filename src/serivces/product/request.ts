@@ -277,8 +277,28 @@ export const productApi = {
     search?: string;
     clothingCategory?: string;
   }): Promise<{ products: ProductListItem[]; lastPage: number }> => {
+    // 백엔드가 colorSeasons[] 형식을 기대하므로 배열을 변환
+    const backendParams: any = {
+      page: params.page,
+      limit: params.limit,
+      sort: params.sort,
+      bodyType: params.bodyType,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      search: params.search,
+      clothingCategory: params.clothingCategory,
+    };
+    
+    // 배열 파라미터는 [] 형식으로 변환
+    if (params.colorSeasons && params.colorSeasons.length > 0) {
+      backendParams['colorSeasons[]'] = params.colorSeasons;
+    }
+    if (params.styleCategories && params.styleCategories.length > 0) {
+      backendParams['styleCategories[]'] = params.styleCategories;
+    }
+    
     const res = await axiosInstance.get('/products', {
-      params,
+      params: backendParams,
     });
     return res.data;
   },

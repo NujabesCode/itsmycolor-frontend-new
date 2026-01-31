@@ -266,7 +266,7 @@ export const ProductView = ({type}: {type: 'user' | 'recommend' | 'all' | 'new'}
           >
             {products && products.length > 0 ? (
               products.map((item, index) => (
-              <Link
+              <StaticLink
                 key={index}
                 className="group relative bg-white overflow-hidden flex-shrink-0 w-[170px] sm:w-[180px] md:w-[220px] transform transition-opacity duration-200 hover:opacity-80"
                 href={ROUTE.SHOPPING_PRODUCT_DETAIL(item.id)}
@@ -306,7 +306,7 @@ export const ProductView = ({type}: {type: 'user' | 'recommend' | 'all' | 'new'}
                     ₩{item.price.toLocaleString()}
                   </p>
                 </div>
-              </Link>
+              </StaticLink>
               ))
             ) : (
               <div className="flex-shrink-0 w-full text-center py-12 text-gray-500">

@@ -99,9 +99,11 @@ export const ProductEditModal = ({
           <div className="mb-6">
             <button
               className="w-fit px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-500 transition-colors"
-              onClick={() =>
-                window.location.href = `${ROUTE.SHOPPING_PRODUCT_DETAIL(product.id)}.html`
-              }
+              onClick={() => {
+                // 정적 export 모드에서는 dummy.html 파일을 사용하고 쿼리 파라미터로 상품 ID 전달
+                const url = `${window.location.origin}/shopping/product/dummy.html?productId=${product.id}`;
+                window.open(url, '_blank');
+              }}
             >
               상품 상세 페이지 보러가기
             </button>

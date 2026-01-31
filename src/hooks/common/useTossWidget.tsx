@@ -1,6 +1,5 @@
 'use client';
 
-import { ENV } from '@/configs/app/env';
 import { useGetUser } from '@/serivces/user/query';
 import {
   loadTossPayments,
@@ -22,18 +21,19 @@ export const useTossWidget = (amount: number) => {
         return;
       }
 
-      if (!ENV.TOSS_CLIENT_KEY) {
+      const tossClientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || '';
+      if (!tossClientKey) {
         console.error('useTossWidget: TOSS_CLIENT_KEY가 설정되지 않았습니다.');
         return;
       }
 
       try {
         console.log('useTossWidget: Toss 결제 위젯 초기화 시작', { 
-          clientKey: ENV.TOSS_CLIENT_KEY ? `${ENV.TOSS_CLIENT_KEY.substring(0, 10)}...` : 'empty',
+          clientKey: tossClientKey ? `${tossClientKey.substring(0, 10)}...` : 'empty',
           customerKey 
         });
         
-        const tossPayments = await loadTossPayments(ENV.TOSS_CLIENT_KEY);
+        const tossPayments = await loadTossPayments(tossClientKey);
 
         const widgets = tossPayments.widgets({
           customerKey,

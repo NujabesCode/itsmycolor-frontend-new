@@ -148,7 +148,17 @@ export default function AdminSideBar() {
                       ? "bg-gray-100 text-gray-900"
                       : "hover:bg-gray-100 text-gray-700"
                   }`}
-                  onClick={() => router.push(item.path)}
+                  onClick={() => {
+                    // S3 정적 호스팅에서는 .html 확장자 필요
+                    // 정적 export 모드에서는 window.location을 사용해야 함
+                    const pathWithHtml = item.path.endsWith('.html') ? item.path : `${item.path}.html`;
+                    // 현재 경로와 같으면 이동하지 않음 (무한 루프 방지)
+                    const currentPath = window.location.pathname.replace('.html', '');
+                    if (currentPath === item.path) {
+                      return;
+                    }
+                    window.location.href = pathWithHtml;
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <Icon size={20} />

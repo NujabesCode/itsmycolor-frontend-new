@@ -13,9 +13,32 @@ function makeQueryClient() {
         // With SSR, we usually want to set some default staleTime
         // above 0 to avoid refetching immediately on the client
         staleTime: 60 * 1000,
-        retry: 3, // 네트워크 에러 시 재시도
-        retryDelay: 1000, // 1초 후 재시도
+        retry: (failureCount, error: any) => {
+          // Mixed Content 에러나 CORS 에러는 재시도하지 않음
+          if (error?.name === 'MixedContentError' || error?.name === 'NetworkError') {
+            return false;
+          }
+          // 최대 3번 재시도
+          return failureCount < 3;
+        },
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000), // 지수 백오프
         refetchOnWindowFocus: false, // 창 포커스 시 자동 재요청 방지
+        onError: (error: any) => {
+          // 전역 에러 핸들링
+          console.error('[React Query] 전역 쿼리 에러:', error);
+          if (error?.name === 'MixedContentError') {
+            console.error('[React Query] Mixed Content 문제: HTTPS 사이트에서 HTTP API 호출 불가');
+          } else if (error?.name === 'NetworkError') {
+            console.error('[React Query] 네트워크 에러: 연결 문제 또는 CORS 에러');
+          }
+        },
+      },
+      mutations: {
+        retry: false, // mutation은 재시도하지 않음
+        onError: (error: any) => {
+          // 전역 mutation 에러 핸들링
+          console.error('[React Query] 전역 mutation 에러:', error);
+        },
       },
     },
   });

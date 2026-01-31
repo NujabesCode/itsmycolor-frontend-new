@@ -1,11 +1,10 @@
 'use client';
 
-import { useGetCustomerList } from '@/serivces/admin/query';
 import { formatDate } from '@/utils/date';
 import { Customer } from '@/serivces/admin/type';
 
 interface CustomerDetailModalProps {
-  customer: Customer;
+  customer: Customer | null;
   onClose: () => void;
 }
 
@@ -13,6 +12,11 @@ export const CustomerDetailModal = ({
   customer,
   onClose,
 }: CustomerDetailModalProps) => {
+  // customer가 없으면 모달을 표시하지 않음
+  if (!customer) {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
@@ -30,7 +34,7 @@ export const CustomerDetailModal = ({
           <div className="flex items-center gap-3 mb-4">
             <div>
               <div className="text-lg font-bold text-grey-33">
-                {customer.name}
+                {customer.name || '-'}
               </div>
               {customer.isVip && (
                 <span className="inline-block px-2 py-1 text-xs rounded bg-orange-90 text-orange-20 font-semibold mt-1">
@@ -43,7 +47,7 @@ export const CustomerDetailModal = ({
           <div className="space-y-3">
             <div className="flex justify-between py-2 border-b border-grey-95">
               <span className="font-medium text-grey-47">연락처</span>
-              <span className="text-grey-33">{customer.phone}</span>
+              <span className="text-grey-33">{customer.phone || '-'}</span>
             </div>
             {customer.email && (
               <div className="flex justify-between py-2 border-b border-grey-95">
@@ -53,22 +57,31 @@ export const CustomerDetailModal = ({
             )}
             <div className="flex justify-between py-2 border-b border-grey-95">
               <span className="font-medium text-grey-47">체형 타입</span>
-              <span className="text-grey-33">{customer.bodyType}</span>
+              <span className="text-grey-33">{customer.bodyType || '-'}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-grey-95">
               <span className="font-medium text-grey-47">퍼스널 컬러</span>
-              <span className="text-grey-33">{customer.colorSeason}</span>
+              <span className="text-grey-33">{customer.colorSeason || '-'}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-grey-95">
               <span className="font-medium text-grey-47">최근 방문일</span>
               <span className="text-grey-33">
-                {formatDate(customer.lastVisitDate ?? '')}
+                {customer.lastVisitDate ? formatDate(customer.lastVisitDate) : '-'}
               </span>
             </div>
             <div className="flex justify-between py-2">
               <span className="font-medium text-grey-47">누적 구매액</span>
               <span className="text-grey-33 font-semibold">
-                ₩{customer.purchaseInfo?.totalAmount?.toLocaleString() ?? '0'}
+                {(() => {
+                  const purchaseInfo = customer.purchaseInfo;
+                  const totalAmount = (purchaseInfo && typeof purchaseInfo === 'object' && 'totalAmount' in purchaseInfo)
+                    ? purchaseInfo.totalAmount
+                    : 0;
+                  
+                  return (typeof totalAmount === 'number' && !isNaN(totalAmount) && totalAmount >= 0)
+                    ? `₩${totalAmount.toLocaleString()}`
+                    : '₩0';
+                })()}
               </span>
             </div>
           </div>

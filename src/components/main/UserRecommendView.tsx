@@ -3,9 +3,9 @@
 import { ROUTE } from '@/configs/constant/route';
 import { useGetFitProductList } from '@/serivces/product/query';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import { useGetUser } from '@/serivces/user/query';
+import { StaticLink } from '@/components/common/StaticLink';
 
 // 한 줄 슬라이더 컴포넌트
 const ProductSlider = ({ products, title }: { products: any[] | undefined; title: string }) => {
@@ -99,7 +99,7 @@ const ProductSlider = ({ products, title }: { products: any[] | undefined; title
           onTouchMove={handleTouchMove}
         >
           {products.map((item, index) => (
-            <Link
+            <StaticLink
               key={item.id || index}
               className="group relative bg-white overflow-hidden flex-shrink-0 w-[170px] sm:w-[180px] md:w-[220px] transform transition-opacity duration-200 hover:opacity-80"
               href={ROUTE.SHOPPING_PRODUCT_DETAIL(item.id)}
@@ -139,7 +139,7 @@ const ProductSlider = ({ products, title }: { products: any[] | undefined; title
                   ₩{item.price.toLocaleString()}
                 </p>
               </div>
-            </Link>
+            </StaticLink>
           ))}
         </div>
       </div>

@@ -23,6 +23,23 @@ export const RouterGuard = () => {
     // 클라이언트 사이드에서만 실행
     if (typeof window === 'undefined') return;
     
+    // 상품 상세 페이지 관련 처리는 ProductRedirectHandler에서 처리하므로 여기서는 제외
+    // pathname이 /shopping/product/로 시작하는 경우는 RouterGuard에서 처리하지 않음
+    if (pathname.includes('/shopping/product/')) {
+      return;
+    }
+    
+    // index.html로 리다이렉트된 경우 전체 URL에서 상품 ID 확인
+    if (pathname === '/' || pathname === '/index.html') {
+      const fullUrl = window.location.href;
+      const hash = window.location.hash;
+      
+      // 상품 상세 페이지로 리다이렉트되는 경우는 ProductRedirectHandler에서 처리
+      if (fullUrl.includes('/shopping/product/') || hash.includes('/shopping/product/')) {
+        return;
+      }
+    }
+    
     let token: string | null = null;
     try {
       token =

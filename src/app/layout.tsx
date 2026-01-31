@@ -7,6 +7,7 @@ import { Footer } from '@/components/common/Footer';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterGuard } from '@/components/common/RouterGuard';
+import { ProductRedirectHandler } from '@/components/common/ProductRedirectHandler';
 import { Suspense } from 'react';
 import { ProductStoreProvider } from '@/providers/ProductStoreProvider';
 
@@ -42,13 +43,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com" />
         <link rel="dns-prefetch" href="https://itsmycolor-bucket.s3.ap-northeast-2.amazonaws.com" />
         {/* API 서버에 미리 연결 */}
-        <link rel="preconnect" href="http://13.125.130.10:3000" />
-        <link rel="dns-prefetch" href="http://13.125.130.10:3000" />
+        <link rel="preconnect" href="http://43.201.54.58:3000" />
+        <link rel="dns-prefetch" href="http://43.201.54.58:3000" />
       </head>
       <body className={`${notoSansKR.className} ${notoSansKR.variable}`} suppressHydrationWarning>
         <ReactQueryProvider>
           <ProductStoreProvider>
             <Suspense>
+              <ProductRedirectHandler />
               <RouterGuard />
             </Suspense>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { SellerTabBar } from "@/components/common/SellerTabBar";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { ROUTE } from "@/configs/constant/route";
 import { STORAGE } from "@/configs/constant/storage";
@@ -17,11 +17,18 @@ export default function SellerLayout({
   const pathname = usePathname();
   const [{ data: user, isLoading }] = useGetUser();
   const [isChecking, setIsChecking] = useState(true);
+  const hasRedirected = useRef(false); // 리다이렉트 여부 추적
 
   useEffect(() => {
     // 로그인 페이지는 체크하지 않음
     if (pathname.startsWith(ROUTE.SELLER_SIGNIN) || pathname.startsWith(ROUTE.SELLER_SIGNUP)) {
       setIsChecking(false);
+      hasRedirected.current = false; // 로그인 페이지에서는 리셋
+      return;
+    }
+
+    // 이미 리다이렉트했으면 실행하지 않음
+    if (hasRedirected.current) {
       return;
     }
 
@@ -29,6 +36,8 @@ export default function SellerLayout({
 
     // LG-005: 비로그인 상태에서 판매자 페이지 접근 시 로그인 페이지로 리다이렉트
     if (!token) {
+      hasRedirected.current = true; // 리다이렉트 플래그 설정
+      setIsChecking(false);
       alert("로그인이 필요합니다.");
       // 정적 export 모드에서는 .html 확장자 추가
       router.replace(`${ROUTE.SELLER_SIGNIN}.html?to=${btoa(pathname)}`);
@@ -39,6 +48,8 @@ export default function SellerLayout({
     if (!isLoading && user) {
       // LG-006: 일반 고객이 판매자 페이지 접근 시 차단
       if (user.role !== UserRole.BRAND_ADMIN) {
+        hasRedirected.current = true; // 리다이렉트 플래그 설정
+        setIsChecking(false);
         if (user.role === UserRole.USER) {
           alert("판매자 권한이 없습니다. 판매자 계정으로 로그인해주세요.");
         } else {
@@ -51,10 +62,12 @@ export default function SellerLayout({
       setIsChecking(false);
     } else if (!isLoading && !user) {
       // 토큰은 있지만 사용자 정보를 가져올 수 없는 경우
+      hasRedirected.current = true; // 리다이렉트 플래그 설정
+      setIsChecking(false);
       alert("로그인이 필요합니다.");
       router.replace(ROUTE.SELLER_SIGNIN);
     }
-  }, [user, isLoading, pathname, router]);
+  }, [user, isLoading, pathname]);
 
   // 로그인 페이지는 바로 렌더링
   if (pathname.startsWith(ROUTE.SELLER_SIGNIN) || pathname.startsWith(ROUTE.SELLER_SIGNUP)) {
