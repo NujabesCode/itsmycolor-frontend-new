@@ -53,10 +53,16 @@ export default function AdminSettlement() {
   const [commissionRate, setCommissionRate] = useState<number>(12);
   const queryClient = useQueryClient();
 
-  // 브랜드 목록 조회
+  // 해당 년월에 주문이 있는 브랜드 목록 조회
   const { data: brands } = useQuery({
-    queryKey: ['admin-brands', BrandStatus.APPROVED],
-    queryFn: () => adminApi.getBrandList({ status: BrandStatus.APPROVED }),
+    queryKey: ['brands-with-orders', settlementYear, settlementMonth],
+    queryFn: () => {
+      if (!settlementYear || !settlementMonth) {
+        return Promise.resolve([]);
+      }
+      return adminApi.getBrandsWithOrders(settlementYear, settlementMonth);
+    },
+    enabled: !!settlementYear && !!settlementMonth,
   });
 
   // FC-001: 기간 필터로 정산 내역 조회
@@ -238,8 +244,15 @@ export default function AdminSettlement() {
               value={selectedBrandId}
               onChange={(e) => setSelectedBrandId(e.target.value)}
               className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-48"
+              disabled={!settlementYear || !settlementMonth}
             >
-              <option value="">브랜드 선택</option>
+              <option value="">
+                {!settlementYear || !settlementMonth 
+                  ? '년도와 월을 먼저 선택하세요' 
+                  : brands && brands.length === 0 
+                  ? '해당 기간에 주문이 있는 브랜드가 없습니다'
+                  : '브랜드 선택'}
+              </option>
               {brands?.map((brand) => (
                 <option key={brand.id} value={brand.id}>
                   {brand.name}

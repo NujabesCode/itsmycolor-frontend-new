@@ -162,4 +162,11 @@ export const adminApi = {
   deleteBanner: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/admin/banners/${id}`);
   },
+  // Settlement APIs
+  getBrandsWithOrders: async (year: number, month: number): Promise<Brand[]> => {
+    const response = await axiosInstance.get('/settlements/brands-with-orders', {
+      params: { year, month },
+    });
+    return response.data;
+  },
 };
