@@ -39,6 +39,14 @@ export default function AdminSettlement() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [selectedSettlement, setSelectedSettlement] = useState<Settlement | null>(null);
+  const [settlementYear, setSettlementYear] = useState<number>(() => {
+    const now = new Date();
+    return now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  });
+  const [settlementMonth, setSettlementMonth] = useState<number>(() => {
+    const now = new Date();
+    return now.getMonth() === 0 ? 12 : now.getMonth();
+  });
   const queryClient = useQueryClient();
 
   // FC-001: 기간 필터로 정산 내역 조회
@@ -94,21 +102,29 @@ export default function AdminSettlement() {
 
   // 정산 생성 처리
   const createSettlementMutation = useMutation({
-    mutationFn: async ({ year, month }: { year?: number; month?: number }) => {
-      const params: any = {};
-      if (year) params.year = year;
-      if (month) params.month = month;
+    mutationFn: async ({ year, month }: { year: number; month: number }) => {
+      const params: any = { year, month };
       const response = await axiosInstance.post('/settlements/calculate-monthly', {}, { params });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-settlements'] });
-      alert('정산이 생성되었습니다.');
+      alert(`${settlementYear}년 ${settlementMonth}월 정산이 생성되었습니다.`);
     },
     onError: (error: any) => {
       alert(error?.response?.data?.message || '정산 생성에 실패했습니다.');
     },
   });
+
+  const handleCreateSettlement = () => {
+    if (!settlementYear || !settlementMonth) {
+      alert('년도와 월을 선택해주세요.');
+      return;
+    }
+    if (confirm(`${settlementYear}년 ${settlementMonth}월 정산을 생성하시겠습니까?`)) {
+      createSettlementMutation.mutate({ year: settlementYear, month: settlementMonth });
+    }
+  };
 
   // FC-005: Excel 다운로드
   const handleDownloadExcel = () => {
@@ -169,6 +185,50 @@ export default function AdminSettlement() {
           <IoDownloadOutline size={20} />
           <span>Excel 다운로드</span>
         </button>
+      </div>
+
+      {/* 정산 생성 섹션 */}
+      <div className="bg-white-solid rounded-xl shadow p-6 mb-6">
+        <h2 className="text-lg font-semibold text-grey-20 mb-4">정산 생성</h2>
+        <div className="flex items-center gap-4">
+          <div>
+            <label className="block text-sm font-medium text-grey-20 mb-1">년도</label>
+            <input
+              type="number"
+              min="2020"
+              max={new Date().getFullYear()}
+              value={settlementYear}
+              onChange={(e) => setSettlementYear(parseInt(e.target.value) || new Date().getFullYear())}
+              className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-32"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-grey-20 mb-1">월</label>
+            <select
+              value={settlementMonth}
+              onChange={(e) => setSettlementMonth(parseInt(e.target.value))}
+              className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-32"
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                <option key={month} value={month}>
+                  {month}월
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={handleCreateSettlement}
+              disabled={createSettlementMutation.isPending}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {createSettlementMutation.isPending ? '생성 중...' : '정산 생성'}
+            </button>
+          </div>
+          <div className="flex-1 text-sm text-grey-46">
+            선택한 년월의 주문 데이터를 기반으로 정산을 자동 계산합니다.
+          </div>
+        </div>
       </div>
 
       {/* FC-001: 기간 필터 */}
@@ -291,26 +351,8 @@ export default function AdminSettlement() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="text-grey-46">
-                        조회된 정산 내역이 없습니다.
-                      </div>
-                      <button
-                        onClick={() => {
-                          const now = new Date();
-                          const lastMonth = now.getMonth() === 0 ? 12 : now.getMonth();
-                          const lastYear = lastMonth === 12 ? now.getFullYear() - 1 : now.getFullYear();
-                          if (confirm(`${lastYear}년 ${lastMonth}월 정산을 생성하시겠습니까?`)) {
-                            createSettlementMutation.mutate({ year: lastYear, month: lastMonth });
-                          }
-                        }}
-                        disabled={createSettlementMutation.isPending}
-                        className="px-4 py-2 bg-azure-39 text-white rounded-lg hover:bg-azure-50 transition-colors disabled:opacity-50"
-                      >
-                        {createSettlementMutation.isPending ? '정산 생성 중...' : '이전 달 정산 생성'}
-                      </button>
-                    </div>
+                  <td colSpan={7} className="py-8 text-center text-grey-46">
+                    조회된 정산 내역이 없습니다. 상단의 "정산 생성" 섹션에서 정산을 생성해주세요.
                   </td>
                 </tr>
               )}
