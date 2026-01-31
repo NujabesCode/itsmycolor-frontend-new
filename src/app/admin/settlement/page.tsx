@@ -42,14 +42,18 @@ export default function AdminSettlement() {
   const queryClient = useQueryClient();
 
   // FC-001: 기간 필터로 정산 내역 조회
-  const { data: settlements, isLoading } = useQuery({
+  const { data: settlements, isLoading, error } = useQuery({
     queryKey: ['admin-settlements', startDate, endDate],
     queryFn: async () => {
       const params: any = {};
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
       const response = await axiosInstance.get('/settlements', { params });
-      return response.data;
+      // 백엔드가 배열을 직접 반환하는지 확인
+      return Array.isArray(response.data) ? response.data : [];
+    },
+    onError: (error: any) => {
+      console.error('정산 내역 조회 실패:', error);
     },
   });
 
@@ -88,6 +92,24 @@ export default function AdminSettlement() {
     },
   });
 
+  // 정산 생성 처리
+  const createSettlementMutation = useMutation({
+    mutationFn: async ({ year, month }: { year?: number; month?: number }) => {
+      const params: any = {};
+      if (year) params.year = year;
+      if (month) params.month = month;
+      const response = await axiosInstance.post('/settlements/calculate-monthly', {}, { params });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-settlements'] });
+      alert('정산이 생성되었습니다.');
+    },
+    onError: (error: any) => {
+      alert(error?.response?.data?.message || '정산 생성에 실패했습니다.');
+    },
+  });
+
   // FC-005: Excel 다운로드
   const handleDownloadExcel = () => {
     if (!settlements || settlements.length === 0) {
@@ -115,6 +137,22 @@ export default function AdminSettlement() {
       <div className="min-h-screen bg-grey-98 p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-grey-71">데이터를 불러오는 중...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-grey-98 p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-red-500">
+            정산 내역을 불러오는 중 오류가 발생했습니다.
+            <br />
+            <span className="text-sm text-grey-46 mt-2 block">
+              {(error as any)?.response?.data?.message || (error as any)?.message || '알 수 없는 오류'}
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -185,7 +223,7 @@ export default function AdminSettlement() {
               </tr>
             </thead>
             <tbody>
-              {settlements && settlements.length > 0 ? (
+              {settlements && Array.isArray(settlements) && settlements.length > 0 ? (
                 settlements.map((settlement: Settlement) => (
                   <tr
                     key={settlement.id}
@@ -253,8 +291,26 @@ export default function AdminSettlement() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-grey-46">
-                    조회된 정산 내역이 없습니다.
+                  <td colSpan={7} className="py-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="text-grey-46">
+                        조회된 정산 내역이 없습니다.
+                      </div>
+                      <button
+                        onClick={() => {
+                          const now = new Date();
+                          const lastMonth = now.getMonth() === 0 ? 12 : now.getMonth();
+                          const lastYear = lastMonth === 12 ? now.getFullYear() - 1 : now.getFullYear();
+                          if (confirm(`${lastYear}년 ${lastMonth}월 정산을 생성하시겠습니까?`)) {
+                            createSettlementMutation.mutate({ year: lastYear, month: lastMonth });
+                          }
+                        }}
+                        disabled={createSettlementMutation.isPending}
+                        className="px-4 py-2 bg-azure-39 text-white rounded-lg hover:bg-azure-50 transition-colors disabled:opacity-50"
+                      >
+                        {createSettlementMutation.isPending ? '정산 생성 중...' : '이전 달 정산 생성'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )}
