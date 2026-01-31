@@ -124,7 +124,9 @@ export default function AdminSettlement() {
       setSelectedBrandId('');
     },
     onError: (error: any) => {
-      alert(error?.response?.data?.message || '정산 생성에 실패했습니다.');
+      console.error('정산 생성 오류:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || '정산 생성에 실패했습니다.';
+      alert(errorMessage);
     },
   });
 
@@ -141,6 +143,19 @@ export default function AdminSettlement() {
       alert('수수료율은 0~100 사이의 값이어야 합니다.');
       return;
     }
+    
+    // 이미 존재하는 정산이 있는지 확인
+    const settlementMonthStr = `${settlementYear}-${settlementMonth.toString().padStart(2, '0')}`;
+    const existingSettlement = settlements?.find((s: Settlement) => 
+      s.brand?.id === selectedBrandId && 
+      s.settlementMonth === settlementMonthStr
+    );
+    
+    if (existingSettlement) {
+      alert(`해당 브랜드의 ${settlementYear}년 ${settlementMonth}월 정산이 이미 존재합니다.\n정산 목록에서 확인해주세요.`);
+      return;
+    }
+    
     const brandName = brands?.find(b => b.id === selectedBrandId)?.name || '브랜드';
     if (confirm(`${brandName}의 ${settlementYear}년 ${settlementMonth}월 정산을 생성하시겠습니까?\n수수료율: ${commissionRate}%`)) {
       createBrandSettlementMutation.mutate({ 
