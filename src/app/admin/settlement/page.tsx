@@ -6,7 +6,8 @@ import { axiosInstance } from '@/serivces/client';
 import { Settlement, SettlementStatus } from '@/serivces/settlement/type';
 import { IoDownloadOutline, IoCalendarOutline, IoCheckmarkCircle, IoCloseCircle } from 'react-icons/io5';
 import { adminApi } from '@/serivces/admin/request';
-import { Brand, BrandStatus } from '@/serivces/admin/type';
+import { Brand } from '@/serivces/admin/type';
+import { BrandStatus } from '@/serivces/brand/type';
 
 // Excel 다운로드 함수
 const downloadExcel = (data: any[], filename: string) => {
