@@ -151,33 +151,45 @@ export default function AdminSettlement() {
       alert('브랜드를 선택해주세요.');
       return;
     }
-    if (!settlementYear || !settlementMonth) {
-      alert('년도와 월을 선택해주세요.');
-      return;
-    }
     if (commissionRate < 0 || commissionRate > 100) {
       alert('수수료율은 0~100 사이의 값이어야 합니다.');
       return;
     }
     
-    // 이미 존재하는 정산이 있는지 확인
-    const settlementMonthStr = `${settlementYear}-${settlementMonth.toString().padStart(2, '0')}`;
-    const existingSettlement = settlements?.find((s: Settlement) => 
-      s.brand?.id === selectedBrandId && 
-      s.settlementMonth === settlementMonthStr
-    );
-    
-    if (existingSettlement) {
-      alert(`해당 브랜드의 ${settlementYear}년 ${settlementMonth}월 정산이 이미 존재합니다.\n정산 목록에서 확인해주세요.`);
-      return;
+    // 년도와 월이 선택된 경우에만 중복 체크 및 검증
+    if (settlementYear && settlementMonth) {
+      // 해당 기간에 주문이 있는 브랜드인지 확인
+      if (brandsWithOrders && brandsWithOrders.length > 0) {
+        const hasOrders = brandsWithOrders.some(b => b.id === selectedBrandId);
+        if (!hasOrders) {
+          alert('선택한 브랜드는 해당 기간에 주문이 없습니다. 다른 브랜드를 선택하거나 년도/월을 변경해주세요.');
+          return;
+        }
+      }
+      
+      // 이미 존재하는 정산이 있는지 확인
+      const settlementMonthStr = `${settlementYear}-${settlementMonth.toString().padStart(2, '0')}`;
+      const existingSettlement = settlements?.find((s: Settlement) => 
+        s.brand?.id === selectedBrandId && 
+        s.settlementMonth === settlementMonthStr
+      );
+      
+      if (existingSettlement) {
+        alert(`해당 브랜드의 ${settlementYear}년 ${settlementMonth}월 정산이 이미 존재합니다.\n정산 목록에서 확인해주세요.`);
+        return;
+      }
     }
     
     const brandName = brands?.find(b => b.id === selectedBrandId)?.name || '브랜드';
-    if (confirm(`${brandName}의 ${settlementYear}년 ${settlementMonth}월 정산을 생성하시겠습니까?\n수수료율: ${commissionRate}%`)) {
+    const periodText = settlementYear && settlementMonth 
+      ? `${settlementYear}년 ${settlementMonth}월`
+      : '전체 기간';
+    
+    if (confirm(`${brandName}의 ${periodText} 정산을 생성하시겠습니까?\n수수료율: ${commissionRate}%`)) {
       createBrandSettlementMutation.mutate({ 
         brandId: selectedBrandId, 
-        year: settlementYear, 
-        month: settlementMonth,
+        year: settlementYear || undefined, 
+        month: settlementMonth || undefined,
         commissionRate 
       });
     }
