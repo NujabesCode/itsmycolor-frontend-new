@@ -255,12 +255,11 @@ export default function AdminSettlement() {
               value={selectedBrandId}
               onChange={(e) => setSelectedBrandId(e.target.value)}
               className="px-3 py-2 border border-grey-91 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-39 w-48"
-              disabled={!settlementYear || !settlementMonth}
             >
               <option value="">
-                {!settlementYear || !settlementMonth 
-                  ? '년도와 월을 먼저 선택하세요' 
-                  : brands && brands.length === 0 
+                {brands && brands.length === 0 
+                  ? '브랜드가 없습니다'
+                  : settlementYear && settlementMonth && brandsWithOrders && brandsWithOrders.length === 0
                   ? '해당 기간에 주문이 있는 브랜드가 없습니다'
                   : '브랜드 선택'}
               </option>
